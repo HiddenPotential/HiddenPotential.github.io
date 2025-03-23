@@ -253,69 +253,80 @@ p {
     font-weight: bold;
 }
 
-/* Flute Section */
-.flute-section {
+/* Skills Container for Flute and Coding Sections */
+.skills-container {
+    display: flex;
+    gap: 30px;
     margin-bottom: 40px;
-    padding: 30px;
-    background-color: #48d1cc;
-    border-radius: 15px;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-    color: white;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    position: relative;
-    overflow: hidden;
 }
 
-.flute-section:before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-    transform: rotate(30deg);
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.8s ease;
+.flute-section, 
+.coding-section {
+    flex: 1;
+    margin-bottom: 0;
+    min-width: 0;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: auto;
 }
 
-.flute-section:hover:before {
-    opacity: 1;
-    animation: spin 20s linear infinite;
-}
-
-.flute-content {
+.flute-content,
+.coding-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     position: relative;
     z-index: 1;
 }
 
-.flute-section h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 28px;
+.flute-text,
+.coding-text {
+    flex-grow: 1;
 }
 
-.flute-text {
-    width: 100%;
-}
-
-.flute-achievements {
-    margin-top: 20px;
+.flute-achievements,
+.coding-achievements {
+    margin-top: auto;
+    min-height: 180px;
     background-color: rgba(255, 255, 255, 0.2);
-    padding: 15px;
+    padding: 15px 20px;
     border-radius: 10px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
 }
 
-.flute-achievements ul {
+.flute-achievements h3,
+.coding-achievements h3 {
+    margin-top: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.flute-achievements ul,
+.coding-achievements ul {
     padding-left: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
-.flute-achievements li {
-    margin-bottom: 8px;
+.flute-achievements li,
+.coding-achievements li {
+    margin-bottom: 10px;
+    font-size: 16px;
+    position: relative;
+}
+
+.flute-achievements li:before,
+.coding-achievements li:before {
+    content: "•";
+    position: absolute;
+    left: -15px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: bold;
 }
 
 .music-notes {
@@ -564,13 +575,23 @@ footer p {
         margin-bottom: 30px;
     }
     
+    .skills-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .flute-section,
+    .coding-section {
+        margin-bottom: 30px;
+    }
+    
     .intro-section, 
     .flute-section,
+    .coding-section,
     .fun-facts-section,
     .quiz-section, 
     footer {
         padding: 20px;
-        margin-bottom: 30px;
     }
     
     .content-boxes {
@@ -716,4 +737,140 @@ header:hover {
     60% {background-color: #c7ceea;}
     80% {background-color: #ffdac1;}
     100% {background-color: #ff9aa2;}
+}
+
+/* Coding Section */
+.coding-section {
+    background-color: #8a2be2; /* Purple color */
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    color: white;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.coding-section:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+    transform: rotate(30deg);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.coding-section:hover:before {
+    opacity: 1;
+    animation: spin 20s linear infinite;
+}
+
+.coding-section h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 28px;
+}
+
+.coding-text {
+    width: 100%;
+}
+
+.coding-icons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+.icon {
+    font-size: 22px;
+    font-weight: bold;
+    font-family: monospace;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.icon:hover {
+    transform: translateY(-5px) rotate(5deg);
+    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+
+.coding-section:hover .icon {
+    animation: bounce-delay 2s infinite;
+}
+
+.icon:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.icon:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.icon:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+.icon:nth-child(5) {
+    animation-delay: 0.8s;
+}
+
+@keyframes bounce-delay {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-8px);}
+    60% {transform: translateY(-4px);}
+}
+
+/* Flute Section */
+.flute-section {
+    background-color: #48d1cc;
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    color: white;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.flute-section:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+    transform: rotate(30deg);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.flute-section:hover:before {
+    opacity: 1;
+    animation: spin 20s linear infinite;
+}
+
+.flute-section h2,
+.coding-section h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 28px;
+}
+
+.flute-text,
+.coding-text {
+    width: 100%;
+    flex-grow: 1;
 } 
