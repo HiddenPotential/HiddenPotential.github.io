@@ -10,6 +10,7 @@ A fun, colorful static homepage for Anna Xinran Wang, a 5th-grade Roblox master,
   - Roblox gaming
   - Golf achievements
   - Flute playing with animated music notes
+  - Coding adventures with interactive code demos
 - "More About Me" section with favorite things and hobbies
 - Interactive quiz to test how well visitors know you
 - Fun animations including:
@@ -54,6 +55,7 @@ A fun, colorful static homepage for Anna Xinran Wang, a 5th-grade Roblox master,
 - Hover over the content boxes to see a subtle animation!
 - Hover over the fact boxes for a fun lifting effect!
 - Watch the musical notes float up and down in the flute section!
+- Click on the coding icons to see code snippets with typing animation!
 - Take the quiz to test how well visitors know you!
 
 Enjoy your new homepage! 😊 

@@ -358,6 +358,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 10000);
     }
     
+    // Add interactive functionality to coding icons
+    const codingIcons = document.querySelectorAll('.coding-icons .icon');
+    const codeSnippets = [
+        'print("Hello World!")\n# This is Python code!',
+        'function movePlayer() {\n  player.x += 5;\n  if(hitEnemy()) {\n    gameOver();\n  }\n}',
+        'let sum = 0;\nfor (let i = 1; i <= 10; i++) {\n  sum += i;\n}\nprint("Sum is: " + sum);',
+        'when green flag clicked\nmove 10 steps\nif touching edge then\n  bounce\nend',
+        'robot.forward(100)\nrobot.turn(90)\nrobot.sense()\nif robot.obstacle() then\n  robot.stop()',
+        'blocks.create("stone")\nblocks.move(3, 4, 5)\nblocks.build("house")'
+    ];
+    
+    codingIcons.forEach((icon, index) => {
+        // Add data attribute with code snippet
+        icon.setAttribute('data-code', codeSnippets[index % codeSnippets.length]);
+        
+        icon.addEventListener('click', function() {
+            // Create a code popup
+            const codePopup = document.createElement('div');
+            codePopup.className = 'code-popup';
+            codePopup.textContent = '';
+            
+            // Position near the icon
+            const rect = this.getBoundingClientRect();
+            codePopup.style.left = rect.left + 'px';
+            codePopup.style.top = (rect.bottom + 10) + 'px';
+            
+            document.body.appendChild(codePopup);
+            
+            // Simulate typing animation
+            const codeText = this.getAttribute('data-code');
+            let charIndex = 0;
+            
+            const typingInterval = setInterval(() => {
+                if (charIndex < codeText.length) {
+                    codePopup.textContent += codeText.charAt(charIndex);
+                    charIndex++;
+                    
+                    // Create typing sound effect
+                    const typingSound = new Audio();
+                    typingSound.volume = 0.1;
+                    typingSound.src = 'https://www.soundjay.com/button/sounds/button-tick.mp3';
+                    typingSound.play().catch(e => {
+                        // Silently fail - browsers may block autoplay
+                        console.log('Audio playback failed', e);
+                    });
+                } else {
+                    clearInterval(typingInterval);
+                    
+                    // Run effect
+                    setTimeout(() => {
+                        codePopup.classList.add('run');
+                        
+                        // Run sound
+                        const runSound = new Audio();
+                        runSound.volume = 0.2;
+                        runSound.src = 'https://www.soundjay.com/button/sounds/button-14.mp3';
+                        runSound.play().catch(e => console.log('Audio playback failed', e));
+                        
+                        setTimeout(() => {
+                            codePopup.classList.add('fade-out');
+                            setTimeout(() => {
+                                document.body.removeChild(codePopup);
+                            }, 1000);
+                        }, 1500);
+                    }, 500);
+                }
+            }, 100);
+            
+            // Visual feedback on the icon itself
+            this.classList.add('typing');
+            setTimeout(() => {
+                this.classList.remove('typing');
+            }, codeText.length * 100 + 2000);
+        });
+    });
+    
     // Initialize animations
     handleTypingAnimations();
 }); 
