@@ -34,20 +34,22 @@
             <section class="content-boxes">
                 <article class="box roblox-box">
                     <h2>Roblox</h2>
-                    <p>I love playing Roblox! My favorite game is Dandy's World. I've been playing for 1 year and I'm really good at it!</p>
-                    <p><strong>Fun Fact:</strong> I once survived twisted Goob and Scraps in one round!</p>
-                    <div class="image-container">
-                        <img id="roblox-img" src="images/roblox.jpg" alt="Anna playing Roblox Dandy's World game" class="content-image">
-                    </div>
-                    <div class="details-section">
-                        <h3>My Favorite Roblox Games:</h3>
-                        <ul>
-                            <li>Bee Swarm Simulator</li>
-                            <li>Blox Fruits</li>
-                            <li>Big Paintball 2</li>
-                            <li>Islands</li>
-                            <li>Dandy's World</li>
-                        </ul>
+                    <div class="box-content">
+                        <div class="box-text">
+                            <p>I love playing Roblox! My favorite game is Dandy's World. I've been playing for 1 year and I'm really good at it!</p>
+                            <p><strong>Fun Fact:</strong> I once survived twisted Goob and Scraps in one round!</p>
+                        </div>
+                    
+                        <div class="details-section">
+                            <h3>My Favorite Roblox Games:</h3>
+                            <ul>
+                                <li>Bee Swarm Simulator</li>
+                                <li>Blox Fruits</li>
+                                <li>Big Paintball 2</li>
+                                <li>Islands</li>
+                                <li>Dandy's World</li>
+                            </ul>
+                        </div>
                     </div>
                 </article>
                 
@@ -71,8 +73,12 @@
                         <div class="golf-images">
                             <div class="image-container">
                                 <img id="golf-img" src="images/golf.jpg" alt="Anna playing golf at a tournament" class="content-image">
+                                <div class="image-caption">Me at my last tournament!</div>
                             </div>
-                            <div class="image-caption">Me at my last tournament!</div>
+                            <div class="image-container second-image">
+                                <img id="golf-img2" src="images/golf2.jpg" alt="Anna showing off her golf medals" class="content-image">
+                                <div class="image-caption">All my golf medals!</div>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -176,6 +182,10 @@
         
         document.getElementById('golf-img').onerror = function() {
             this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Golf+Photo';
+        };
+        
+        document.getElementById('golf-img2').onerror = function() {
+            this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Second+Golf+Photo';
         };
         
         document.getElementById('profile-img').onerror = function() {
