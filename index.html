@@ -29,8 +29,8 @@
         <div class="content-boxes">
             <div class="box roblox-box">
                 <h2>Roblox</h2>
-                <p>I love playing Roblox! My favorite game is [Your Favorite Game]. I've been playing for [X] years and I'm really good at it!</p>
-                <p><strong>Fun Fact:</strong> I once [share a cool Roblox achievement or funny story]!</p>
+                <p>I love playing Roblox! My favorite game is Dandy's World. I've been playing for 3 years and I'm really good at it!</p>
+                <p><strong>Fun Fact:</strong> I once survived twisted Goob and Scraps in one round!</p>
                 <div class="image-container">
                     <img id="roblox-img" src="images/roblox.jpg" alt="My Roblox Screenshot" class="content-image">
                 </div>
@@ -49,49 +49,19 @@
             <div class="box golf-box">
                 <h2>Golf</h2>
                 <p>I'm proud of my golf skills! I've won several awards in the US Kids Golf Tournament.</p>
-                <p><strong>My Achievements:</strong> [List some of your golf awards and accomplishments here]</p>
+                <p><strong>My Achievements:</strong> I won 5th place in the semimifinals of Drive Chip and Putt!</p>
                 <div class="image-container">
                     <img id="golf-img" src="images/golf.jpg" alt="My Golf Photo" class="content-image">
                 </div>
                 <div class="details-section">
                     <h3>My Golf Journey:</h3>
                     <ul>
-                        <li>Started playing at age [X]</li>
-                        <li>My best score is [X]</li>
-                        <li>My favorite golf course is [X]</li>
-                        <li>My golf hero is [X]</li>
+                        <li>Started playing at age 8</li>
+                        <li>My best score is 38 </li>
+                        <li>My favorite golf course is Bethpage Yellow</li>
+                        
                     </ul>
                 </div>
-            </div>
-        </div>
-        
-        <div class="flute-section">
-            <h2>My Flute Journey 🎵</h2>
-            <div class="flute-content">
-                <div class="flute-text">
-                    <p>Music is another passion of mine! I've been playing the flute for [X] years and I love how it sounds.</p>
-                    <p>My favorite pieces to play are [list your favorite songs or pieces]. I practice for [amount of time] every day!</p>
-                    
-                    <div class="flute-achievements">
-                        <h3>My Musical Achievements:</h3>
-                        <ul>
-                            <li>Performed in the school concert</li>
-                            <li>Learning to play [difficult piece you're working on]</li>
-                            <li>Can play [number] different songs</li>
-                            <li>[Any other musical achievements]</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="flute-image-container">
-                    <img id="flute-img" src="images/flute.jpg" alt="Me Playing the Flute" class="flute-image">
-                </div>
-            </div>
-            <div class="music-notes">
-                <span class="note">♪</span>
-                <span class="note">♫</span>
-                <span class="note">♬</span>
-                <span class="note">♩</span>
-                <span class="note">♪</span>
             </div>
         </div>
         
@@ -101,10 +71,11 @@
                 <div class="fact-box">
                     <h3>Favorite Things</h3>
                     <ul>
-                        <li><strong>Food:</strong> [Your favorite food]</li>
-                        <li><strong>Color:</strong> [Your favorite color]</li>
-                        <li><strong>Subject:</strong> [Your favorite subject in school]</li>
-                        <li><strong>Animal:</strong> [Your favorite animal]</li>
+                        <li><strong>Food:</strong> French Vanilla Ice Cream</li>
+                        <li><strong>Color:</strong> Teal</li>
+                        <li><strong>Subject:</strong> Science</li>
+                        <li><strong>Animal:</strong>Snake</li>
+                        <li><strong>Mythical Animal:</strong>Dragon</li>
                     </ul>
                 </div>
                 <div class="fact-box">
@@ -113,12 +84,12 @@
                         <li>Playing Roblox</li>
                         <li>Golf</li>
                         <li>Playing the flute</li>
-                        <li>[Another hobby]</li>
+                        <li>Reading books</li>
                     </ul>
                 </div>
                 <div class="fact-box">
                     <h3>When I Grow Up</h3>
-                    <p>I want to be a [Your dream job] because [Why you want this job]!</p>
+                    <p>I want to be a Website designer because because I can make my own website!</p>
                 </div>
             </div>
         </div>
@@ -130,23 +101,17 @@
                 <div class="quiz-question">
                     <p><strong>Question 1:</strong> What is my favorite Roblox game?</p>
                     <button class="quiz-option" data-correct="false">Brookhaven</button>
-                    <button class="quiz-option" data-correct="true">[Your actual favorite]</button>
+                    <button class="quiz-option" data-correct="true">Dandy's World</button>
                     <button class="quiz-option" data-correct="false">Adopt Me!</button>
                 </div>
                 <div class="quiz-question">
                     <p><strong>Question 2:</strong> How old was I when I started playing golf?</p>
                     <button class="quiz-option" data-correct="false">4 years old</button>
-                    <button class="quiz-option" data-correct="true">[Correct answer]</button>
+                    <button class="quiz-option" data-correct="true">8 years old</button>
                     <button class="quiz-option" data-correct="false">7 years old</button>
                 </div>
-                <div class="quiz-question">
-                    <p><strong>Question 3:</strong> What instrument do I play?</p>
-                    <button class="quiz-option" data-correct="false">Piano</button>
-                    <button class="quiz-option" data-correct="true">Flute</button>
-                    <button class="quiz-option" data-correct="false">Violin</button>
-                </div>
                 <div class="quiz-result">
-                    <p>Your score: <span id="quiz-score">0</span>/3</p>
+                    <p>Your score: <span id="quiz-score">0</span>/2</p>
                 </div>
             </div>
         </div>
@@ -169,10 +134,6 @@
         
         document.getElementById('profile-img').onerror = function() {
             this.src = 'https://via.placeholder.com/200x200?text=Add+Your+Profile+Photo';
-        };
-        
-        document.getElementById('flute-img').onerror = function() {
-            this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Flute+Photo';
         };
     </script>
 </body>
