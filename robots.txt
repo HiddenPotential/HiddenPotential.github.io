@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Sitemap: https://www.annaswang.com/sitemap.xml
+
+# Allow all search engines to crawl all content
+Disallow: /images/placeholder.txt
+Disallow: /image-preview.html 
