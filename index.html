@@ -34,7 +34,7 @@
             <section class="content-boxes">
                 <article class="box roblox-box">
                     <h2>Roblox</h2>
-                    <p>I love playing Roblox! My favorite game is Dandy's World. I've been playing for 3 years and I'm really good at it!</p>
+                    <p>I love playing Roblox! My favorite game is Dandy's World. I've been playing for 1 year and I'm really good at it!</p>
                     <p><strong>Fun Fact:</strong> I once survived twisted Goob and Scraps in one round!</p>
                     <div class="image-container">
                         <img id="roblox-img" src="images/roblox.jpg" alt="Anna playing Roblox Dandy's World game" class="content-image">
@@ -53,18 +53,27 @@
                 
                 <article class="box golf-box">
                     <h2>Golf</h2>
-                    <p>I'm proud of my golf skills! I've won several awards in the US Kids Golf Tournament.</p>
-                    <p><strong>My Achievements:</strong> I won 5th place in the semimifinals of Drive Chip and Putt!</p>
-                    <div class="image-container">
-                        <img id="golf-img" src="images/golf.jpg" alt="Anna playing golf at a tournament" class="content-image">
-                    </div>
-                    <div class="details-section">
-                        <h3>My Golf Journey:</h3>
-                        <ul>
-                            <li>Started playing at age 8</li>
-                            <li>My best score is 38</li>
-                            <li>My favorite golf course is Bethpage Yellow</li>
-                        </ul>
+                    <div class="golf-content-wrapper">
+                        <div class="golf-text">
+                            <p>I'm proud of my golf skills! I've won several awards in the US Kids Golf Tournament.</p>
+                            <p><strong>My Achievements:</strong> I won 5th place in the semimifinals of Drive Chip and Putt!</p>
+                            <div class="details-section">
+                                <h3>My Golf Journey:</h3>
+                                <ul>
+                                    <li>Started playing at age 8</li>
+                                    <li>My best score is 38</li>
+                                    <li>My favorite golf course is Bethpage Yellow</li>
+                                    <li>I practice every weekend</li>
+                                    <li>My best drive is 150 yards</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="golf-images">
+                            <div class="image-container">
+                                <img id="golf-img" src="images/golf.jpg" alt="Anna playing golf at a tournament" class="content-image">
+                            </div>
+                            <div class="image-caption">Me at my last tournament!</div>
+                        </div>
                     </div>
                 </article>
             </section>
@@ -74,18 +83,15 @@
                 <div class="flute-content">
                     <div class="flute-text">
                         <p>Playing the flute is one of my favorite hobbies! I love creating beautiful music and learning new pieces.</p>
-                        <p>I practice every day and enjoy playing both classical and modern songs on my flute.</p>
+                        <p>I practice every day and enjoy playing songs on my flute.</p>
                         <div class="flute-achievements">
                             <h3>My Music Journey:</h3>
                             <ul>
                                 <li>Started learning the flute in 4th grade</li>
                                 <li>Performed in my school's music recital</li>
-                                <li>My favorite piece to play is "Twinkle Twinkle Little Star"</li>
+                                <li>My favorite piece to play is "Funkytown"</li>
                             </ul>
                         </div>
-                    </div>
-                    <div class="flute-image-container">
-                        <img id="flute-img" src="images/flute.jpg" alt="Anna playing the flute at a recital" class="flute-image">
                     </div>
                 </div>
                 <div class="music-notes">
@@ -174,10 +180,6 @@
         
         document.getElementById('profile-img').onerror = function() {
             this.src = 'https://via.placeholder.com/200x200?text=Add+Your+Profile+Photo';
-        };
-        
-        document.getElementById('flute-img').onerror = function() {
-            this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Flute+Photo';
         };
         
         // Update copyright year
