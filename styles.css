@@ -1,0 +1,282 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background-color: #4287f5;
+    color: white;
+    padding: 30px 0;
+    text-align: center;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+h1 {
+    font-family: 'Cabin Sketch', cursive;
+    font-size: 48px;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+h2 {
+    font-family: 'Cabin Sketch', cursive;
+    font-size: 32px;
+    margin-top: 0;
+}
+
+h3 {
+    font-family: 'Cabin Sketch', cursive;
+    font-size: 24px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.tagline {
+    font-size: 24px;
+    margin-top: 10px;
+    font-weight: bold;
+    font-family: 'Cabin Sketch', cursive;
+}
+
+/* Intro Section */
+.intro-section {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    background-color: #f0f8ff;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    align-items: center;
+}
+
+.intro-text {
+    flex: 2;
+}
+
+.profile-pic {
+    flex: 1;
+    text-align: center;
+}
+
+.profile-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #4287f5;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Main Content Boxes */
+.content-boxes {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.box {
+    flex: 1;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.roblox-box {
+    background-color: #4287f5;
+    color: white;
+}
+
+.golf-box {
+    background-color: #20b2aa;
+    color: white;
+}
+
+p {
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.image-container {
+    margin-top: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.content-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.content-image:hover {
+    transform: scale(1.02);
+}
+
+.details-section {
+    margin-top: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.details-section ul {
+    padding-left: 20px;
+}
+
+.details-section li {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+/* Fun Facts Section */
+.fun-facts-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background-color: #FFD93D;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.fun-facts-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.facts-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.fact-box {
+    flex: 1;
+    min-width: 250px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.fact-box h3 {
+    color: #4287f5;
+    margin-top: 0;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.fact-box ul {
+    padding-left: 20px;
+}
+
+.fact-box li {
+    margin-bottom: 8px;
+}
+
+/* Quiz Section */
+.quiz-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background-color: #FF9A8B;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.quiz-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.quiz-question {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.quiz-option {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.quiz-option:hover {
+    background-color: #e0e0e0;
+}
+
+.quiz-option.correct {
+    background-color: #8eff8e;
+}
+
+.quiz-option.incorrect {
+    background-color: #ffadad;
+}
+
+.quiz-result {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #FFD93D;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 18px;
+    font-family: 'Cabin Sketch', cursive;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content-boxes,
+    .intro-section,
+    .facts-container {
+        flex-direction: column;
+    }
+    
+    h1 {
+        font-size: 36px;
+    }
+    
+    .tagline {
+        font-size: 20px;
+    }
+    
+    .profile-image {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .fact-box {
+        min-width: auto;
+    }
+} 

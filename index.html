@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anna's Homepage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header title="Click me for a surprise!">
+            <h1>Anna Xinran Wang</h1>
+            <div class="tagline">Roblox Master & Golf Pro</div>
+        </header>
+        
+        <div class="intro-section">
+            <div class="intro-text">
+                <h2>Hi there! 👋</h2>
+                <p>Welcome to my page! I'm a 5th grader who loves playing Roblox and golf. When I'm not studying, you can find me designing amazing Roblox worlds or practicing my golf swing!</p>
+            </div>
+            <div class="profile-pic">
+                <img id="profile-img" src="images/profile.jpg" alt="Anna's Photo" class="profile-image">
+            </div>
+        </div>
+        
+        <div class="content-boxes">
+            <div class="box roblox-box">
+                <h2>Roblox</h2>
+                <p>I love playing Roblox! My favorite game is [Your Favorite Game]. I've been playing for [X] years and I'm really good at it!</p>
+                <p><strong>Fun Fact:</strong> I once [share a cool Roblox achievement or funny story]!</p>
+                <div class="image-container">
+                    <img id="roblox-img" src="images/roblox.jpg" alt="My Roblox Screenshot" class="content-image">
+                </div>
+                <div class="details-section">
+                    <h3>My Favorite Roblox Games:</h3>
+                    <ul>
+                        <li>Adopt Me!</li>
+                        <li>Brookhaven</li>
+                        <li>Royale High</li>
+                        <li>[Add your other favorites]</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="box golf-box">
+                <h2>Golf</h2>
+                <p>I'm proud of my golf skills! I've won several awards in the US Kids Golf Tournament.</p>
+                <p><strong>My Achievements:</strong> [List some of your golf awards and accomplishments here]</p>
+                <div class="image-container">
+                    <img id="golf-img" src="images/golf.jpg" alt="My Golf Photo" class="content-image">
+                </div>
+                <div class="details-section">
+                    <h3>My Golf Journey:</h3>
+                    <ul>
+                        <li>Started playing at age [X]</li>
+                        <li>My best score is [X]</li>
+                        <li>My favorite golf course is [X]</li>
+                        <li>My golf hero is [X]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fun-facts-section">
+            <h2>More About Me</h2>
+            <div class="facts-container">
+                <div class="fact-box">
+                    <h3>Favorite Things</h3>
+                    <ul>
+                        <li><strong>Food:</strong> [Your favorite food]</li>
+                        <li><strong>Color:</strong> [Your favorite color]</li>
+                        <li><strong>Subject:</strong> [Your favorite subject in school]</li>
+                        <li><strong>Animal:</strong> [Your favorite animal]</li>
+                    </ul>
+                </div>
+                <div class="fact-box">
+                    <h3>My Hobbies</h3>
+                    <ul>
+                        <li>Playing Roblox</li>
+                        <li>Golf</li>
+                        <li>[Another hobby]</li>
+                        <li>[Another hobby]</li>
+                    </ul>
+                </div>
+                <div class="fact-box">
+                    <h3>When I Grow Up</h3>
+                    <p>I want to be a [Your dream job] because [Why you want this job]!</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quiz-section">
+            <h2>Fun Quiz About Me!</h2>
+            <p>Test how well you know me!</p>
+            <div class="quiz-container">
+                <div class="quiz-question">
+                    <p><strong>Question 1:</strong> What is my favorite Roblox game?</p>
+                    <button class="quiz-option" data-correct="false">Brookhaven</button>
+                    <button class="quiz-option" data-correct="true">[Your actual favorite]</button>
+                    <button class="quiz-option" data-correct="false">Adopt Me!</button>
+                </div>
+                <div class="quiz-question">
+                    <p><strong>Question 2:</strong> How old was I when I started playing golf?</p>
+                    <button class="quiz-option" data-correct="false">4 years old</button>
+                    <button class="quiz-option" data-correct="true">[Correct answer]</button>
+                    <button class="quiz-option" data-correct="false">7 years old</button>
+                </div>
+                <div class="quiz-result">
+                    <p>Your score: <span id="quiz-score">0</span>/2</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            Thanks for visiting my page! Have a super awesome day! 😊
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Error handling for images
+        document.getElementById('roblox-img').onerror = function() {
+            this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Roblox+Screenshot';
+        };
+        
+        document.getElementById('golf-img').onerror = function() {
+            this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Golf+Photo';
+        };
+        
+        document.getElementById('profile-img').onerror = function() {
+            this.src = 'https://via.placeholder.com/200x200?text=Add+Your+Profile+Photo';
+        };
+    </script>
+</body>
+</html> 
