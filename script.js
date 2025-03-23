@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const header = document.querySelector('header');
     
     header.addEventListener('click', function() {
-        const colors = ['#4287f5', '#ff6b6b', '#4adede', '#ff9a3c', '#9b59b6'];
+        const colors = ['#4abed9', '#20b2aa', '#48d1cc', '#7dd8e8', '#a0e1e0'];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
         
         this.style.backgroundColor = randomColor;
@@ -98,20 +98,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add typing effect to intro
-    const introText = document.querySelector('.intro-text p');
-    if (introText) {
-        const originalText = introText.textContent;
-        introText.textContent = '';
+    // Helper function to enable smooth scrolling while animations are happening
+    function smoothScrollTo(target, duration) {
+        const targetPosition = target.getBoundingClientRect().top;
+        const startPosition = window.pageYOffset;
+        const distance = targetPosition - startPosition;
+        let startTime = null;
         
-        let i = 0;
-        const typingEffect = setInterval(() => {
-            if (i < originalText.length) {
-                introText.textContent += originalText.charAt(i);
-                i++;
-            } else {
-                clearInterval(typingEffect);
-            }
-        }, 25);
+        function animation(currentTime) {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const run = ease(timeElapsed, startPosition, distance, duration);
+            window.scrollTo(0, run);
+            if (timeElapsed < duration) requestAnimationFrame(animation);
+        }
+        
+        function ease(t, b, c, d) {
+            t /= d / 2;
+            if (t < 1) return c / 2 * t * t + b;
+            t--;
+            return -c / 2 * (t * (t - 2) - 1) + b;
+        }
+        
+        requestAnimationFrame(animation);
     }
+    
+    // Add floating animation to music notes
+    const notes = document.querySelectorAll('.note');
+    notes.forEach((note, index) => {
+        // Give each note a slightly different position
+        note.style.transform = `translateY(${index * 2}px)`;
+    });
+    
+    // Activate typing animations only when they're in the viewport
+    function handleTypingAnimations() {
+        const typingElements = document.querySelectorAll('.typing-text');
+        
+        const options = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, options);
+        
+        typingElements.forEach(el => {
+            el.style.opacity = 0;  // Hide initially
+            observer.observe(el);
+        });
+    }
+    
+    // Initialize animations
+    handleTypingAnimations();
 }); 

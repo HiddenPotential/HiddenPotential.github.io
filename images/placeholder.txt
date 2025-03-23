@@ -4,11 +4,13 @@ You can add:
 1. A profile photo as "profile.jpg" (preferably square, will be displayed as a circle)
 2. A Roblox screenshot as "roblox.jpg" 
 3. A golf photo as "golf.jpg"
+4. A flute photo as "flute.jpg"
 
 Image tips:
 - Profile photo should be a close-up of your face or upper body
 - Roblox screenshot should show your avatar in your favorite game
 - Golf photo should show you playing golf or with your trophies
+- Flute photo should show you playing the flute or at a recital
 - Try to use clear, high-quality images with good lighting
 
 Rename your images to something like "roblox.jpg" and "golf.jpg" for easy reference. 
