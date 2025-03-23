@@ -10,10 +10,12 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #e6f7fa;
+            color: #2a4c58;
         }
         
         h1 {
-            color: #4287f5;
+            color: #4abed9;
         }
         
         .preview-container {
@@ -24,14 +26,15 @@
         }
         
         .preview-box {
-            border: 2px solid #ccc;
+            border: 2px solid #a0e1e0;
             padding: 15px;
             border-radius: 10px;
+            background-color: white;
         }
         
         .preview-box h2 {
             margin-top: 0;
-            color: #333;
+            color: #20b2aa;
         }
         
         .image-preview {
@@ -46,13 +49,13 @@
             height: 200px;
             object-fit: cover;
             border-radius: 50%;
-            border: 5px solid #4287f5;
+            border: 5px solid #4abed9;
             margin-top: 10px;
             display: block;
         }
         
         .instructions {
-            background-color: #f5f5f5;
+            background-color: #c5e8f0;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
@@ -62,7 +65,7 @@
             display: inline-block;
             margin-top: 20px;
             padding: 10px 15px;
-            background-color: #4287f5;
+            background-color: #4abed9;
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -99,6 +102,13 @@
             <img id="golf-preview" class="image-preview" src="images/golf.jpg" alt="Golf Preview">
             <p><strong>File path:</strong> <code id="golf-path">images/golf.jpg</code></p>
         </div>
+        
+        <div class="preview-box">
+            <h2>Flute Image</h2>
+            <p>Update the src attribute to point to your flute image:</p>
+            <img id="flute-preview" class="image-preview" src="images/flute.jpg" alt="Flute Preview">
+            <p><strong>File path:</strong> <code id="flute-path">images/flute.jpg</code></p>
+        </div>
     </div>
     
     <a href="index.html" class="back-link">Back to Homepage</a>
@@ -118,6 +128,11 @@
         document.getElementById('golf-preview').onerror = function() {
             this.src = 'https://via.placeholder.com/400x300?text=Golf+Image+Not+Found';
             document.getElementById('golf-path').style.color = 'red';
+        };
+        
+        document.getElementById('flute-preview').onerror = function() {
+            this.src = 'https://via.placeholder.com/400x300?text=Flute+Image+Not+Found';
+            document.getElementById('flute-path').style.color = 'red';
         };
     </script>
 </body>

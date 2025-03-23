@@ -65,6 +65,36 @@
             </div>
         </div>
         
+        <div class="flute-section">
+            <h2>My Flute Journey 🎵</h2>
+            <div class="flute-content">
+                <div class="flute-text">
+                    <p>Music is another passion of mine! I've been playing the flute for [X] years and I love how it sounds.</p>
+                    <p>My favorite pieces to play are [list your favorite songs or pieces]. I practice for [amount of time] every day!</p>
+                    
+                    <div class="flute-achievements">
+                        <h3>My Musical Achievements:</h3>
+                        <ul>
+                            <li>Performed in the school concert</li>
+                            <li>Learning to play [difficult piece you're working on]</li>
+                            <li>Can play [number] different songs</li>
+                            <li>[Any other musical achievements]</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flute-image-container">
+                    <img id="flute-img" src="images/flute.jpg" alt="Me Playing the Flute" class="flute-image">
+                </div>
+            </div>
+            <div class="music-notes">
+                <span class="note">♪</span>
+                <span class="note">♫</span>
+                <span class="note">♬</span>
+                <span class="note">♩</span>
+                <span class="note">♪</span>
+            </div>
+        </div>
+        
         <div class="fun-facts-section">
             <h2>More About Me</h2>
             <div class="facts-container">
@@ -82,7 +112,7 @@
                     <ul>
                         <li>Playing Roblox</li>
                         <li>Golf</li>
-                        <li>[Another hobby]</li>
+                        <li>Playing the flute</li>
                         <li>[Another hobby]</li>
                     </ul>
                 </div>
@@ -109,8 +139,14 @@
                     <button class="quiz-option" data-correct="true">[Correct answer]</button>
                     <button class="quiz-option" data-correct="false">7 years old</button>
                 </div>
+                <div class="quiz-question">
+                    <p><strong>Question 3:</strong> What instrument do I play?</p>
+                    <button class="quiz-option" data-correct="false">Piano</button>
+                    <button class="quiz-option" data-correct="true">Flute</button>
+                    <button class="quiz-option" data-correct="false">Violin</button>
+                </div>
                 <div class="quiz-result">
-                    <p>Your score: <span id="quiz-score">0</span>/2</p>
+                    <p>Your score: <span id="quiz-score">0</span>/3</p>
                 </div>
             </div>
         </div>
@@ -133,6 +169,10 @@
         
         document.getElementById('profile-img').onerror = function() {
             this.src = 'https://via.placeholder.com/200x200?text=Add+Your+Profile+Photo';
+        };
+        
+        document.getElementById('flute-img').onerror = function() {
+            this.src = 'https://via.placeholder.com/400x300?text=Add+Your+Flute+Photo';
         };
     </script>
 </body>
