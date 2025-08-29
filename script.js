@@ -434,6 +434,458 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Make profile picture draggable
+    const profilePic = document.querySelector('.profile-image');
+    makeElementDraggable(profilePic);
+    
+    function makeElementDraggable(element) {
+        let isDragging = false;
+        let offsetX, offsetY;
+        let originalPosition = null;
+        let hasBeenDragged = false;
+        
+        // Store original styles for reset
+        const originalStyles = {
+            position: element.style.position,
+            left: element.style.left,
+            top: element.style.top,
+            zIndex: element.style.zIndex,
+            transform: element.style.transform,
+            transition: element.style.transition,
+            cursor: element.style.cursor
+        };
+        
+        element.style.cursor = 'grab';
+        
+        element.addEventListener('mousedown', startDrag);
+        element.addEventListener('touchstart', handleTouchStart, { passive: false });
+        
+        function startDrag(e) {
+            isDragging = true;
+            
+            // Save original position if this is first drag
+            if (!hasBeenDragged) {
+                originalPosition = element.getBoundingClientRect();
+                element.style.position = 'relative';
+                hasBeenDragged = true;
+            }
+            
+            const rect = element.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            
+            element.style.zIndex = '1000';
+            element.style.cursor = 'grabbing';
+            
+            document.addEventListener('mousemove', dragElement);
+            document.addEventListener('mouseup', stopDrag);
+            
+            // Show fun message the first time
+            if (!element.hasAttribute('data-dragged')) {
+                showMessage("You can drag me around! 😄");
+                element.setAttribute('data-dragged', 'true');
+            }
+        }
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            startDrag(mouseEvent);
+            
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!isDragging) return;
+            
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            dragElement(mouseEvent);
+        }
+        
+        function handleTouchEnd() {
+            const mouseEvent = new MouseEvent('mouseup');
+            stopDrag(mouseEvent);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        }
+        
+        function dragElement(e) {
+            if (!isDragging) return;
+            
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+            
+            const parent = element.parentElement;
+            const parentRect = parent.getBoundingClientRect();
+            
+            // Keep within parent bounds
+            const maxX = parentRect.width - element.offsetWidth;
+            const maxY = parentRect.height - element.offsetHeight;
+            
+            const newX = Math.min(Math.max(0, x - parentRect.left), maxX);
+            const newY = Math.min(Math.max(0, y - parentRect.top), maxY);
+            
+            element.style.left = newX + 'px';
+            element.style.top = newY + 'px';
+            element.style.transform = 'none'; // Remove any transforms
+        }
+        
+        function stopDrag() {
+            isDragging = false;
+            element.style.cursor = 'grab';
+            document.removeEventListener('mousemove', dragElement);
+            document.removeEventListener('mouseup', stopDrag);
+            
+            // Add double-click reset
+            element.addEventListener('dblclick', resetPosition);
+        }
+        
+        function resetPosition() {
+            // Animate back to original position
+            element.style.transition = 'all 0.5s ease';
+            element.style.left = '0';
+            element.style.top = '0';
+            element.style.transform = originalStyles.transform;
+            
+            // Play fun animation
+            element.style.animation = 'spin 0.5s ease-in-out';
+            setTimeout(() => {
+                element.style.animation = '';
+            }, 500);
+            
+            showMessage("Back to my spot! 🏠");
+        }
+    }
+    
+    // Add interactive water ripple effect on click anywhere
+    document.addEventListener('click', createRipple);
+    
+    function createRipple(e) {
+        // Skip if clicked on an interactive element
+        if (e.target.closest('.quiz-option, button, .icon, .note')) return;
+        
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        document.body.appendChild(ripple);
+        
+        const size = Math.max(100, Math.random() * 150);
+        
+        ripple.style.width = size + 'px';
+        ripple.style.height = size + 'px';
+        ripple.style.left = (e.pageX - size/2) + 'px';
+        ripple.style.top = (e.pageY - size/2) + 'px';
+        
+        ripple.style.position = 'absolute';
+        ripple.style.borderRadius = '50%';
+        ripple.style.pointerEvents = 'none';
+        ripple.style.background = 'radial-gradient(circle, rgba(74, 190, 217, 0.4) 0%, rgba(255, 255, 255, 0) 70%)';
+        ripple.style.transform = 'scale(0)';
+        ripple.style.animation = 'ripple-effect 1s ease-out forwards';
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple-effect {
+                0% { transform: scale(0); opacity: 1; }
+                100% { transform: scale(1); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        setTimeout(() => {
+            document.body.removeChild(ripple);
+        }, 1000);
+    }
+    
+    // Add interactive parallax backgrounds
+    const skillsSections = document.querySelectorAll('.flute-section, .coding-section');
+    
+    window.addEventListener('mousemove', function(e) {
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+        
+        skillsSections.forEach(section => {
+            if (isElementInViewport(section)) {
+                // Create parallax effect
+                section.style.backgroundPositionX = `${x * 20}px`;
+                section.style.backgroundPositionY = `${y * 20}px`;
+            }
+        });
+    });
+    
+    // Floating bubbles in the background
+    createFloatingBubbles();
+    
+    function createFloatingBubbles() {
+        const bubbleContainer = document.createElement('div');
+        bubbleContainer.className = 'bubble-container';
+        bubbleContainer.style.position = 'fixed';
+        bubbleContainer.style.width = '100%';
+        bubbleContainer.style.height = '100%';
+        bubbleContainer.style.top = '0';
+        bubbleContainer.style.left = '0';
+        bubbleContainer.style.pointerEvents = 'none';
+        bubbleContainer.style.zIndex = '-1';
+        bubbleContainer.style.overflow = 'hidden';
+        document.body.prepend(bubbleContainer);
+        
+        // Create bubbles periodically
+        setInterval(() => {
+            if (document.visibilityState === 'visible' && Math.random() > 0.7) {
+                createBubble(bubbleContainer);
+            }
+        }, 3000);
+        
+        // Create initial bubbles
+        for (let i = 0; i < 5; i++) {
+            createBubble(bubbleContainer);
+        }
+    }
+    
+    function createBubble(container) {
+        const bubble = document.createElement('div');
+        
+        // Random properties
+        const size = Math.random() * 60 + 20;
+        const left = Math.random() * 100;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * 5;
+        
+        // Style the bubble
+        bubble.style.position = 'absolute';
+        bubble.style.width = size + 'px';
+        bubble.style.height = size + 'px';
+        bubble.style.left = left + '%';
+        bubble.style.bottom = '-100px';
+        bubble.style.borderRadius = '50%';
+        bubble.style.animation = `float-up ${duration}s linear ${delay}s forwards`;
+        bubble.style.opacity = '0';
+        
+        // Randomize bubble appearance
+        const bubbleType = Math.floor(Math.random() * 3);
+        switch (bubbleType) {
+            case 0:
+                // Transparent blue bubble
+                bubble.style.border = '2px solid rgba(74, 190, 217, 0.3)';
+                bubble.style.boxShadow = 'inset 0 0 10px rgba(74, 190, 217, 0.1)';
+                break;
+            case 1:
+                // Emoji bubble - Anna's interests
+                const emojis = ['🎮', '🏌️‍♀️', '🎵', '💻', '🎺', '🎹', '✨', '📚'];
+                bubble.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                bubble.style.display = 'flex';
+                bubble.style.justifyContent = 'center';
+                bubble.style.alignItems = 'center';
+                bubble.style.fontSize = (size/2) + 'px';
+                break;
+            case 2:
+                // Gradient bubble
+                const colors = ['#4abed9', '#20b2aa', '#48d1cc', '#a0e1e0'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                bubble.style.background = `radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), ${color}33)`;
+                bubble.style.border = `1px solid ${color}55`;
+                break;
+        }
+        
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float-up {
+                0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+                10% { opacity: 0.7; }
+                90% { opacity: 0.7; }
+                100% { transform: translateY(-${window.innerHeight + size}px) rotate(360deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add bubble to container and remove after animation
+        container.appendChild(bubble);
+        setTimeout(() => {
+            container.removeChild(bubble);
+        }, (duration + delay) * 1000);
+    }
+    
+    // Interactive section transitions
+    const sections = document.querySelectorAll('section');
+    
+    // Create observer for fancy section transitions
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.transform = 'translateY(0)';
+                entry.target.style.opacity = '1';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    // Set initial styles and observe sections
+    sections.forEach(section => {
+        section.style.transform = 'translateY(50px)';
+        section.style.opacity = '0';
+        section.style.transition = 'transform 0.8s ease-out, opacity 0.8s ease-out';
+        observer.observe(section);
+    });
+    
+    // Helper function to check if element is in viewport
+    function isElementInViewport(el) {
+        const rect = el.getBoundingClientRect();
+        return (
+            rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.bottom >= 0 &&
+            rect.left <= (window.innerWidth || document.documentElement.clientWidth) &&
+            rect.right >= 0
+        );
+    }
+    
+    // Add a day/night mode toggle
+    createDayNightToggle();
+    
+    function createDayNightToggle() {
+        const toggle = document.createElement('div');
+        toggle.className = 'day-night-toggle';
+        toggle.innerHTML = '☀️';
+        toggle.title = 'Toggle Day/Night Mode';
+        
+        // Style the toggle
+        toggle.style.position = 'fixed';
+        toggle.style.bottom = '20px';
+        toggle.style.right = '20px';
+        toggle.style.width = '50px';
+        toggle.style.height = '50px';
+        toggle.style.borderRadius = '50%';
+        toggle.style.backgroundColor = 'white';
+        toggle.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        toggle.style.display = 'flex';
+        toggle.style.justifyContent = 'center';
+        toggle.style.alignItems = 'center';
+        toggle.style.fontSize = '24px';
+        toggle.style.cursor = 'pointer';
+        toggle.style.zIndex = '100';
+        toggle.style.transition = 'all 0.3s ease';
+        
+        // Add hover effect
+        toggle.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+        });
+        
+        toggle.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+        
+        // Add click handler
+        let isDayMode = true;
+        toggle.addEventListener('click', function() {
+            isDayMode = !isDayMode;
+            
+            if (isDayMode) {
+                // Switch to day mode
+                document.body.classList.remove('night-mode');
+                this.innerHTML = '☀️';
+                showMessage("Bright and sunny! ☀️");
+            } else {
+                // Switch to night mode
+                document.body.classList.add('night-mode');
+                this.innerHTML = '🌙';
+                showMessage("Night mode activated! 🌙");
+                
+                // Add stars if first time switching to night
+                if (!document.querySelector('.stars-container')) {
+                    createStars();
+                }
+            }
+            
+            // Create CSS for night mode
+            if (!document.getElementById('night-mode-css')) {
+                const nightModeStyle = document.createElement('style');
+                nightModeStyle.id = 'night-mode-css';
+                nightModeStyle.textContent = `
+                    .night-mode {
+                        background-color: #1a2a3a !important;
+                        color: #e0e0e0 !important;
+                    }
+                    
+                    .night-mode .container {
+                        background-color: rgba(12, 24, 36, 0.8);
+                        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                        border-radius: 15px;
+                    }
+                    
+                    .night-mode .intro-section {
+                        background-color: #2c3e50 !important;
+                    }
+                    
+                    .night-mode p, .night-mode h2, .night-mode h3 {
+                        color: #e0e0e0 !important;
+                    }
+                    
+                    .night-mode .fact-box {
+                        background-color: #2c3e50 !important;
+                        color: #e0e0e0 !important;
+                    }
+                    
+                    .night-mode .profile-image {
+                        border-color: #4abed9 !important;
+                        box-shadow: 0 0 20px rgba(74, 190, 217, 0.5) !important;
+                    }
+                `;
+                document.head.appendChild(nightModeStyle);
+            }
+        });
+        
+        document.body.appendChild(toggle);
+    }
+    
+    function createStars() {
+        const starsContainer = document.createElement('div');
+        starsContainer.className = 'stars-container';
+        starsContainer.style.position = 'fixed';
+        starsContainer.style.top = '0';
+        starsContainer.style.left = '0';
+        starsContainer.style.width = '100%';
+        starsContainer.style.height = '100%';
+        starsContainer.style.pointerEvents = 'none';
+        starsContainer.style.zIndex = '-1';
+        document.body.appendChild(starsContainer);
+        
+        // Create stars
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            const size = Math.random() * 3 + 1;
+            
+            star.style.position = 'absolute';
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.background = 'white';
+            star.style.borderRadius = '50%';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.opacity = Math.random() * 0.5 + 0.3;
+            star.style.animation = `twinkle ${Math.random() * 4 + 2}s infinite alternate`;
+            
+            starsContainer.appendChild(star);
+        }
+        
+        // Add twinkling animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes twinkle {
+                0% { opacity: 0.3; transform: scale(1); }
+                100% { opacity: 0.8; transform: scale(1.2); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     // Initialize animations
     handleTypingAnimations();
 }); 
