@@ -287,42 +287,85 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to play sound effects
     function playSound(sound) {
-        const audio = new Audio();
-        
-        switch(sound) {
-            case 'correct':
-                audio.src = 'https://www.soundjay.com/buttons/sounds/button-10.mp3';
-                break;
-            case 'incorrect':
-                audio.src = 'https://www.soundjay.com/buttons/sounds/button-24.mp3';
-                break;
-            case 'tada':
-                audio.src = 'https://www.soundjay.com/human/sounds/applause-8.mp3';
-                break;
-            case 'note1':
-                audio.src = 'https://www.soundjay.com/musical/sounds/musical-bell-01.mp3';
-                break;
-            case 'note2':
-                audio.src = 'https://www.soundjay.com/musical/sounds/musical-bell-02.mp3';
-                break;
-            case 'note3':
-                audio.src = 'https://www.soundjay.com/musical/sounds/musical-bell-03.mp3';
-                break;
-            case 'note4':
-                audio.src = 'https://www.soundjay.com/musical/sounds/musical-bell-04.mp3';
-                break;
-            case 'note5':
-                audio.src = 'https://www.soundjay.com/musical/sounds/musical-bell-05.mp3';
-                break;
-            default:
-                return;
-        }
-        
-        audio.volume = 0.5;
-        audio.play().catch(e => {
-            // Silently fail - browsers may block autoplay
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            if (sound === 'correct') {
+                // Create a pleasant success sound
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Pleasant ascending notes
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+                
+            } else if (sound === 'incorrect') {
+                // Create a gentle incorrect sound
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.type = 'sawtooth';
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+                
+            } else if (sound === 'tada') {
+                // Create celebration sound
+                for (let i = 0; i < 3; i++) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    const frequencies = [523.25, 659.25, 783.99]; // C, E, G
+                    oscillator.frequency.setValueAtTime(frequencies[i], audioContext.currentTime + i * 0.1);
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime + i * 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.1 + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime + i * 0.1);
+                    oscillator.stop(audioContext.currentTime + i * 0.1 + 0.3);
+                }
+            } else if (sound.startsWith('note')) {
+                // Create musical notes
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                const noteFreqs = [261.63, 293.66, 329.63, 349.23, 392.00]; // C, D, E, F, G
+                const noteIndex = parseInt(sound.replace('note', '')) - 1;
+                oscillator.frequency.setValueAtTime(noteFreqs[noteIndex] || 261.63, audioContext.currentTime);
+                
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+        } catch (e) {
             console.log('Audio playback failed', e);
-        });
+        }
     }
     
     // Enable a secret Konami code Easter egg (up, up, down, down, left, right, left, right, b, a)
@@ -888,4 +931,4 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize animations
     handleTypingAnimations();
-}); 
+});
