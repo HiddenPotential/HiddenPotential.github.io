@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /image-preview.html
 
-Sitemap: https://hiddenpotential.github.io/sitemap.xml
+Sitemap: https://annawang.net/sitemap.xml

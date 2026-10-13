@@ -1,6 +1,6 @@
 # Anna Wang's Homepage ✏️
 
-Live at **https://hiddenpotential.github.io/**
+Live at **https://annawang.net/**
 
 A notebook-style personal website. Plain HTML/CSS/JS, no build step.
 Click the ☀️/🌙 button to switch between notebook paper and chalkboard.
