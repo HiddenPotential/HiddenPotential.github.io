@@ -78,14 +78,21 @@ h1, h2, h3 { font-family: var(--hand); font-weight: 700; line-height: 1.1; }
 main { max-width: var(--max); margin: 0 auto; padding: 0 24px 0 64px; }
 
 /* Intro */
-.hero { position: relative; padding: 48px 0 32px; }
+/* name on the left, photo on the right of it */
+.hero {
+  position: relative; padding: 48px 0 32px;
+  display: grid; grid-template-columns: 1fr auto; column-gap: 24px;
+}
+.hero > * { grid-column: 1; }
+.hero .photo-frame { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
+.hero .tagline, .hero .links { grid-column: 1 / -1; }
 .avatar {
-  width: 120px; height: 120px; border-radius: 50%; overflow: hidden;
+  width: 160px; height: 160px; border-radius: 50%; overflow: hidden;
   display: grid; place-items: center;
   background: var(--card); border: 1px solid var(--border); font-size: 3.6rem;
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.hi { margin: 24px 0 0; font-family: var(--hand); font-size: 1.8rem; color: var(--muted); }
+.hi { margin: 0; font-family: var(--hand); font-size: 1.8rem; color: var(--muted); }
 .hero h1 { margin: 0; font-size: clamp(3rem, 9vw, 4.6rem); }
 .highlight { background: linear-gradient(transparent 60%, var(--hl) 60% 90%, transparent 90%); padding: 0 4px; }
 .grade { margin: 4px 0 0; color: var(--pen); }
@@ -98,7 +105,7 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px 0 64px; }
 .links a:hover { border-color: var(--pen); color: var(--pen); }
 
 .doodle.star {
-  position: absolute; top: 56px; right: 0; width: 44px;
+  position: absolute; top: 36px; right: -12px; width: 44px; z-index: 1;
   fill: none; stroke: var(--pen); stroke-width: 3; stroke-linejoin: round;
 }
 
@@ -180,6 +187,9 @@ a.card:hover { border-color: var(--pen); }
       repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px);
   }
   .nav { padding: 12px 16px 0 36px; }
+  .hero { column-gap: 12px; }
+  .avatar { width: 96px; height: 96px; }
+  .doodle.star { top: 40px; right: -8px; width: 32px; }
   main { padding: 0 16px 0 36px; }
   .footer { padding: 24px 16px 40px 36px; }
   .faves { grid-template-columns: repeat(2, 1fr); }
