@@ -2,14 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://hiddenpotential.github.io/</loc>
-    <lastmod>2023-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-10-12</lastmod>
+  </url>
+  <url>
+    <loc>https://hiddenpotential.github.io/cool/</loc>
+    <lastmod>2026-10-12</lastmod>
+  </url>
+  <url>
+    <loc>https://hiddenpotential.github.io/apps/fluffipets/</loc>
+    <lastmod>2026-10-12</lastmod>
   </url>
   <url>
     <loc>https://hiddenpotential.github.io/class-schedule/</loc>
-    <lastmod>2023-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-10-12</lastmod>
   </url>
 </urlset>

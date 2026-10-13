@@ -1,7 +1,5 @@
 User-agent: *
 Allow: /
-Sitemap: https://www.annaswang.com/sitemap.xml
+Disallow: /image-preview.html
 
-# Allow all search engines to crawl all content
-Disallow: /images/placeholder.txt
-Disallow: /image-preview.html 
+Sitemap: https://hiddenpotential.github.io/sitemap.xml
