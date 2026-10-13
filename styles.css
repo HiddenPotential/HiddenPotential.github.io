@@ -160,6 +160,10 @@ html { scroll-behavior: smooth; }
 a.card:hover { border-color: var(--pen); }
 .card h3 { margin: 0 0 4px; font-size: 1.7rem; }
 .card p { margin: 0; color: var(--muted); }
+.card .store {
+  display: inline-block; margin-top: 10px; padding: 2px 14px; border-radius: 999px;
+  background: var(--text); color: var(--bg); font-size: .95rem;
+}
 .card .arrow { position: absolute; top: 12px; right: 16px; color: var(--pen); }
 
 .footer {
