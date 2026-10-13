@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coin Pusher | A Free Browser Arcade Game by Anna Wang</title>
+  <meta name="description" content="Play Coin Pusher, a free 3D arcade game made by Anna Wang. Drop coins, push them off the edge, and hit the LUCKY slot for a jackpot.">
+  <meta name="author" content="Anna Wang">
+  <link rel="canonical" href="https://annawang.net/games/coin-pusher/">
+  <meta name="theme-color" content="#fdfcf7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f2d27" media="(prefers-color-scheme: dark)">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Anna Wang">
+  <meta property="og:title" content="Coin Pusher | A game by Anna Wang">
+  <meta property="og:description" content="A free 3D arcade coin pusher you can play in your browser. Drop coins and try to hit the LUCKY slot!">
+  <meta property="og:url" content="https://annawang.net/games/coin-pusher/">
+  <meta property="og:image" content="https://annawang.net/games/coin-pusher/thumbnail.jpg">
+  <meta property="og:image:alt" content="The Coin Pusher arcade machine, full of gold coins">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Coin Pusher | A game by Anna Wang">
+  <meta name="twitter:description" content="A free 3D arcade coin pusher you can play in your browser. Drop coins and try to hit the LUCKY slot!">
+  <meta name="twitter:image" content="https://annawang.net/games/coin-pusher/thumbnail.jpg">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    try {
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Coin Pusher",
+    "url": "https://annawang.net/games/coin-pusher/",
+    "image": "https://annawang.net/games/coin-pusher/thumbnail.jpg",
+    "description": "A free 3D arcade coin pusher game you can play in your browser.",
+    "gamePlatform": "Web browser",
+    "applicationCategory": "Game",
+    "author": { "@type": "Person", "@id": "https://annawang.net/#anna", "name": "Anna Wang", "url": "https://annawang.net/" }
+  }
+  </script>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/" aria-label="Anna Wang, homepage">AW</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Switch between notebook and chalkboard theme" title="Switch theme">
+      <span class="icon-sun" aria-hidden="true">☀️</span><span class="icon-moon" aria-hidden="true">🌙</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="section game-page" aria-labelledby="game-title">
+      <a class="back" href="/#games">← All my games</a>
+      <h1 id="game-title"><span class="highlight">Coin Pusher</span> 🪙</h1>
+      <p class="play-note">Tap the machine or press DROP to drop a coin, and try to hit the LUCKY slot! Your coins save in your browser, and you can spend them on the <a href="/games/claw-machine/">Claw Machine</a> too.</p>
+      <div class="game-frame">
+        <iframe src="/cool/?solo#coin-pusher" title="Coin Pusher, an arcade game by Anna Wang" allow="autoplay"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>made with ♥ by <a href="/">Anna Wang</a> · 2026</span>
+  </footer>
+
+  <script src="/script.js" defer></script>
+  <script src="/games/game.js" defer></script>
+</body>
+</html>

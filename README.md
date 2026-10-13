@@ -18,6 +18,7 @@ Find the section you want (About Me, Things I Do, My Favorite Things, Stuff I Ma
 
 ## Other pages on this site
 
+- `games/coin-pusher/`, `games/claw-machine/`: one page per game, each with a `thumbnail.jpg` used on the homepage. The game itself lives in the `cool` repo (served at `/cool/`); `?solo` shows just one game.
 - `apps/fluffipets/`: Fluffipets app page, privacy policy, and support
 - `google444b4c14092b6f73.html`: Google Search Console verification (don't delete!)
 

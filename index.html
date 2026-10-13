@@ -66,8 +66,17 @@
       {
         "@type": "VideoGame",
         "name": "Coin Pusher",
-        "url": "https://annawang.net/cool/",
+        "url": "https://annawang.net/games/coin-pusher/",
         "description": "An arcade coin pusher game you can play in your browser.",
+        "gamePlatform": "Web browser",
+        "applicationCategory": "Game",
+        "author": { "@id": "https://annawang.net/#anna" }
+      },
+      {
+        "@type": "VideoGame",
+        "name": "Claw Machine",
+        "url": "https://annawang.net/games/claw-machine/",
+        "description": "A claw machine game you can play in your browser.",
         "gamePlatform": "Web browser",
         "applicationCategory": "Game",
         "author": { "@id": "https://annawang.net/#anna" }
@@ -120,16 +129,29 @@
     <section id="about" class="section" aria-labelledby="about-title">
       <h2 id="about-title">About Me</h2>
       <div class="paper">
-        <p>I'm in 7th grade and I love building things. I started coding in Scratch in 1st grade, moved on to Python, and now I make games and apps that real people can use, like a coin pusher game and a little pet that lives on your Mac.</p>
+        <p>I'm in 7th grade and I love building things. I started coding in Scratch in 1st grade, moved on to Python, and now I make games and apps that real people can use, like a coin pusher, a claw machine, and a little pet that lives on your Mac.</p>
         <p>When I'm not coding, I'm making science videos, practicing my golf swing, or playing the flute. When I grow up, I want to be the CEO of a famous company!</p>
       </div>
     </section>
 
-    <section id="play" class="section" aria-labelledby="play-title">
-      <h2 id="play-title">Play My Game! 🪙</h2>
-      <p class="play-note">This is Coin Pusher, a game I made. Tap the machine or press DROP to drop a coin, and try to hit the LUCKY slot!</p>
-      <div class="game-frame">
-        <iframe src="https://annawang.net/cool/" title="Coin Pusher, an arcade game by Anna Wang" loading="lazy" allow="autoplay"></iframe>
+    <section id="games" class="section" aria-labelledby="games-title">
+      <h2 id="games-title">Play My Games! 🕹️</h2>
+      <p class="play-note">I made these arcade games myself. Pick one to play right in your browser!</p>
+      <div class="games">
+        <a class="game-card" href="games/coin-pusher/">
+          <img src="games/coin-pusher/thumbnail.jpg" alt="The Coin Pusher machine, full of gold coins" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Coin Pusher 🪙</h3>
+            <p>Drop coins, push them off the edge, and hit the LUCKY slot.</p>
+          </div>
+        </a>
+        <a class="game-card" href="games/claw-machine/">
+          <img src="games/claw-machine/thumbnail.jpg" alt="The Claw Machine, full of cute plush animals" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Claw Machine 🧸</h3>
+            <p>Steer the claw and grab a plush prize for your shelf.</p>
+          </div>
+        </a>
       </div>
     </section>
 
@@ -195,11 +217,6 @@
     <section id="projects" class="section" aria-labelledby="projects-title">
       <h2 id="projects-title">Stuff I Made</h2>
       <div class="cards">
-        <a class="card" href="#play">
-          <h3>Coin Pusher</h3>
-          <p>An arcade coin pusher game! Drop coins, push them off the edge, and try to hit the LUCKY slot.</p>
-          <span class="arrow" aria-hidden="true">▶</span>
-        </a>
         <a class="card" href="apps/fluffipets/">
           <h3>Fluffipets</h3>
           <p>A little animal that lives on your Mac desktop. He walks along your screen, follows your cursor, and naps in the corner.</p>
