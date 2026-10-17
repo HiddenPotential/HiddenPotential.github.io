@@ -141,8 +141,8 @@
   .card h1 { font-size: 24px; line-height: 1.5; }
   .card h2 { font-size: 15px; line-height: 1.6; }
   .btn { font-size: 12px; padding: 13px 18px; line-height: 1.4; }
-  .course b { font-size: 10px; line-height: 1.6; }
-  .club .n { font-size: 10px; line-height: 1.8; }
+  .course b { font-size: 11px; line-height: 1.6; }
+  .club .n { font-size: 12px; line-height: 1.8; }
   #hud, .card, .club, .btn, #toast, .course, #hint { border: 3px solid #2b2118; }
   .club.sel { border-color: var(--accent); }
   #hud button { border: 2px solid #2b2118; font-family: "Pixelify Sans", sans-serif; }
@@ -1427,10 +1427,11 @@ function textTex(text, big = false) {
 }
 const shadowTex = (() => {
   const c = document.createElement('canvas'); c.width = c.height = 64;
-  const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  // fade to nothing well inside the square, so the pixel outlines never trace its edge
+  const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 28);
   g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
   x.fillStyle = g; x.fillRect(0, 0, 64, 64);
-  const tx = new THREE.CanvasTexture(c); sharedTex.add(tx); return tx;
+  const tx = new THREE.CanvasTexture(c); tx.minFilter = THREE.LinearFilter; sharedTex.add(tx); return tx;
 })();
 const woodCanvas = (() => {
   const c = document.createElement('canvas'); c.width = 512; c.height = 96;
@@ -2212,25 +2213,25 @@ function resize3D() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h; camera.updateProjectionMatrix();
   // the pixel look renders the scene this many CSS pixels per "pixel"
-  const px = Math.max(1, Math.round(w / 330));
+  // (about 480 pixels across: chunky, but small things stay readable)
+  const px = Math.max(1, Math.round(w / 480));
   pixelRT.setSize(Math.round(w / px), Math.round(h / px));
   postMat.uniforms.res.value.set(Math.round(w / px), Math.round(h / px));
 }
 window.addEventListener('resize', () => { resize3D(); });
 
 // ----- the pixel look -----
-// Render the scene small, then blow it up with hard edges, a limited palette, a bit of
-// ordered dithering, and dark outlines wherever the picture changes sharply.
+// Render the scene small, then blow it up with hard edges, a limited palette, a little
+// extra punch, and dark outlines wherever the picture changes sharply. No dithering:
+// it speckles every surface and makes the item hard to pick out.
 let pixelOn = (() => { try { return localStorage.getItem('wackyPixel') !== 'off'; } catch (e) { return true; } })();
 const pixelRT = new THREE.WebGLRenderTarget(330, 211, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
 const postMat = new THREE.ShaderMaterial({
-  uniforms: { tex: { value: pixelRT.texture }, res: { value: new THREE.Vector2(330, 211) }, levels: { value: 9 } },
+  uniforms: { tex: { value: pixelRT.texture }, res: { value: new THREE.Vector2(330, 211) }, levels: { value: 14 } },
   depthTest: false, depthWrite: false,
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: `
     uniform sampler2D tex; uniform vec2 res; uniform float levels; varying vec2 vUv;
-    float bayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
-    float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
     float lum(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
     void main() {
       vec2 px = floor(vUv * res), uv = (px + 0.5) / res, o = 1.0 / res;
@@ -2238,8 +2239,10 @@ const postMat = new THREE.ShaderMaterial({
       float l = lum(c);
       float e = abs(l - lum(texture2D(tex, uv + vec2(o.x, 0.0)).rgb)) + abs(l - lum(texture2D(tex, uv + vec2(0.0, o.y)).rgb))
               + abs(l - lum(texture2D(tex, uv - vec2(o.x, 0.0)).rgb)) + abs(l - lum(texture2D(tex, uv - vec2(0.0, o.y)).rgb));
-      c *= 1.0 - smoothstep(0.16, 0.42, e) * 0.5;
-      c = floor(c * levels + 0.22 + bayer4(px) * 0.56) / levels;
+      c = mix(vec3(l), c, 1.15);                         // a bit more saturated
+      c = clamp((c - 0.5) * 1.12 + 0.53, 0.0, 1.0);      // a bit more contrast, slightly brighter
+      c = mix(c, vec3(0.1, 0.07, 0.05), smoothstep(0.12, 0.3, e) * 0.85); // crisp dark outlines
+      c = floor(c * levels + 0.5) / levels;
       gl_FragColor = vec4(c, 1.0);
     }`,
 });
