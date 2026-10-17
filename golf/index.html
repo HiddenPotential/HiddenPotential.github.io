@@ -2117,45 +2117,236 @@ function pullModel(pl) {
   return g;
 }
 
+// the ground around the course: a tiling texture with patches, ripples or craters
+function floorTex(key, R) {
+  const t = paintTex(256, 256, (x, w, h) => {
+    // draw something at every wrapped position so the tile repeats without seams
+    const wrap = (px, py, fn) => { for (const ox of [-w, 0, w]) for (const oy of [-h, 0, h]) fn(px + ox, py + oy); };
+    const blot = (px, py, rx, ry, color) => wrap(px, py, (a, b) => { x.fillStyle = color; x.beginPath(); x.ellipse(a, b, rx, ry, 0, 0, TAU); x.fill(); });
+    if (key === 'grass') {
+      x.fillStyle = '#4f9e4b'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 26; i++) blot(R() * w, R() * h, 14 + R() * 30, 8 + R() * 18, i % 2 ? '#58a952' : '#47913f');
+      for (let i = 0; i < 160; i++) { const px = R() * w, py = R() * h; x.fillStyle = i % 3 ? '#3f8a3a' : '#63b45a'; x.fillRect(px, py, 2, 4); }
+      for (let i = 0; i < 26; i++) { x.fillStyle = ['#ffffff', '#ffe066', '#ff9ec4'][i % 3]; x.fillRect(R() * w, R() * h, 3, 3); }
+    } else if (key === 'desert') {
+      x.fillStyle = '#d9ab66'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 10; i++) blot(R() * w, R() * h, 20 + R() * 30, 10 + R() * 14, i % 2 ? '#dfb470' : '#d2a25d');
+      // wind ripples: whole waves per tile so they line up at the seams
+      for (let row = 0; row < 14; row++) {
+        const y0 = row * h / 14 + R() * 6, k = 1 + Math.floor(R() * 3), ph = R() * TAU;
+        x.strokeStyle = row % 2 ? '#c99a57' : '#e8c182'; x.lineWidth = 2; x.beginPath();
+        for (let px = 0; px <= w; px += 4) { const py = y0 + Math.sin(px / w * TAU * k + ph) * 5; px ? x.lineTo(px, py) : x.moveTo(px, py); }
+        x.stroke();
+      }
+      for (let i = 0; i < 30; i++) { x.fillStyle = i % 2 ? '#a8784a' : '#c08c58'; x.fillRect(R() * w, R() * h, 3, 2); }
+    } else {
+      x.fillStyle = '#5c5e66'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 220; i++) { x.fillStyle = i % 2 ? '#666870' : '#54565d'; x.fillRect(R() * w, R() * h, 2, 2); }
+      for (let i = 0; i < 9; i++) {
+        const r = 6 + R() * 22;
+        wrap(R() * w, R() * h, (a, b) => {
+          x.fillStyle = '#4c4e55'; x.beginPath(); x.arc(a, b, r, 0, TAU); x.fill();
+          x.strokeStyle = '#767880'; x.lineWidth = 2; x.beginPath(); x.arc(a, b, r, Math.PI * .9, Math.PI * 1.9); x.stroke();
+        });
+      }
+    }
+  });
+  t.repeat.set(1 / 340, 1 / 340); // the floor's UVs are in world units
+  return t;
+}
+
 // scenery around the course
 function buildScenery(R) {
-  const outside = (x, z) => Math.abs(x) > 640 || Math.abs(z) > 420;
-  const spot = () => { for (;;) { const x = (R() - .5) * 2000, z = (R() - .5) * 1500; if (outside(x, z)) return [x, z]; } };
-  if (course.theme === 'grass') {
-    for (let i = 0; i < 46; i++) {
+  const U = level3D.userData, anim = U.sceneryAnim = [], kept = [];
+  // somewhere outside the rails, with room to spare for something m wide,
+  // and clear of the big set pieces (ponds, the lander...)
+  const spot = (m = 0) => {
+    for (;;) {
       const x = (R() - .5) * 2000, z = (R() - .5) * 1500;
-      if (!outside(x, z)) continue;
-      const s = .7 + R() * .8, leaf = mat([0x2f8a3a, 0x3c9d3f, 0x27773a][i % 3]);
-      mesh(new THREE.CylinderGeometry(6 * s, 8 * s, 40 * s, 8), mat(0x7a5230), x, 20 * s, z);
-      mesh(new THREE.ConeGeometry(42 * s, 80 * s, 9), leaf, x, 70 * s, z);
-      mesh(new THREE.ConeGeometry(32 * s, 64 * s, 9), leaf, x, 108 * s, z);
+      if ((Math.abs(x) > 640 + m || Math.abs(z) > 420 + m) && !kept.some(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) < kr + 30)) return [x, z];
+    }
+  };
+  const keep = (m, r) => { const p = spot(m); kept.push([p[0], p[1], r]); return p; };
+  const flat = color => new THREE.MeshLambertMaterial({ color, flatShading: true });
+  const glow = color => new THREE.MeshBasicMaterial({ color });
+  const group = (x, z, s = 1, y = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s); level3D.add(g); return g; };
+  const add = (g, geo, material, x = 0, y = 0, z = 0, shadow = true) => {
+    const m = new THREE.Mesh(geo, material); m.position.set(x, y, z); m.castShadow = shadow; m.receiveShadow = true; g.add(m); return m;
+  };
+  const rocks = (n, colors, size) => {
+    for (let i = 0; i < n; i++) {
+      const [x, z] = spot(), r = size * (.4 + R());
+      const rock = mesh(new THREE.DodecahedronGeometry(r, 0), flat(colors[i % colors.length]), x, r * .35, z);
+      rock.rotation.set(R(), R(), R()); rock.scale.y = .7;
+    }
+  };
+  const pond = (x, z, r, water, edge) => {
+    const g = group(x, z);
+    add(g, new THREE.CircleGeometry(r * 1.12, 28), flat(edge), 0, -1.6, 0, false).rotation.x = -Math.PI / 2;
+    add(g, new THREE.CircleGeometry(r, 28), new THREE.MeshLambertMaterial({ color: water }), 0, -1.2, 0, false).rotation.x = -Math.PI / 2;
+    return g;
+  };
+
+  if (course.theme === 'grass') {
+    const trunk = flat(0x7a5230), leaves = [0x2f8a3a, 0x3c9d3f, 0x27773a, 0x4aa84a].map(flat);
+    const blossom = flat(0xffa8cc), apple = flat(0xe0392b), [px, pz] = keep(160, 140);
+    for (let i = 0; i < 44; i++) {
+      const [x, z] = spot(), s = .7 + R() * .8, leaf = leaves[i % 4], g = group(x, z, s);
+      if (R() < .45) { // pine
+        add(g, new THREE.CylinderGeometry(6, 8, 40, 7), trunk, 0, 20, 0);
+        add(g, new THREE.ConeGeometry(42, 80, 8), leaf, 0, 70, 0);
+        add(g, new THREE.ConeGeometry(30, 62, 8), leaf, 0, 110, 0);
+      } else { // round leafy tree, sometimes in bloom or with apples
+        add(g, new THREE.CylinderGeometry(6, 9, 56, 7), trunk, 0, 28, 0);
+        const crown = R() < .25 ? blossom : leaf;
+        for (let k = 0; k < 4; k++) {
+          const a = k / 4 * TAU + R();
+          add(g, new THREE.IcosahedronGeometry(26 + R() * 12, 1), crown, k ? Math.cos(a) * 20 : 0, k ? 70 + R() * 14 : 92, k ? Math.sin(a) * 20 : 0);
+        }
+        if (crown === leaf && R() < .4) for (let k = 0; k < 6; k++) {
+          const a = R() * TAU; add(g, new THREE.SphereGeometry(4, 6, 4), apple, Math.cos(a) * 34, 66 + R() * 30, Math.sin(a) * 34, false);
+        }
+      }
+    }
+    for (let i = 0; i < 22; i++) { // bushes hugging the rails
+      const [x, z] = spot(-80), g = group(x, z, .7 + R() * .6), leaf = leaves[(i + 1) % 4];
+      for (let k = 0; k < 3; k++) add(g, new THREE.IcosahedronGeometry(14 + R() * 8, 1), leaf, (k - 1) * 16, 10 + R() * 6, R() * 8 - 4);
+    }
+    const petals = [0xffffff, 0xffe066, 0xff8fb8, 0xb58cff].map(glow);
+    for (let i = 0; i < 24; i++) { // flower patches
+      const [x, z] = spot(-60), g = group(x, z), p = petals[i % 4];
+      for (let k = 0; k < 6; k++) add(g, new THREE.SphereGeometry(3.5, 6, 4), p, (R() - .5) * 40, 3, (R() - .5) * 26, false);
+    }
+    rocks(10, [0x9a9a92, 0x87877f], 14);
+    // a pond with lily pads and a ring of stones
+    const p = pond(px, pz, 110, 0x3d8fd6, 0x8f8a74), pad = flat(0x3f9a3f);
+    for (let k = 0; k < 6; k++) { const a = R() * TAU, d = R() * 70; add(p, new THREE.CircleGeometry(11, 10), pad, Math.cos(a) * d, -.6, Math.sin(a) * d, false).rotation.x = -Math.PI / 2; }
+    for (let k = 0; k < 16; k++) { const a = k / 16 * TAU; add(p, new THREE.DodecahedronGeometry(9 + R() * 6, 0), flat(0x9a9a92), Math.cos(a) * 128, 2, Math.sin(a) * 128); }
+    // a little clubhouse in the back corner
+    const h = group(-860, -600, 1.2); h.rotation.y = .5;
+    add(h, new THREE.BoxGeometry(150, 70, 100), flat(0xf3ead2), 0, 35, 0);
+    const roof = add(h, new THREE.ConeGeometry(118, 60, 4), flat(0xd2492e), 0, 100, 0); roof.rotation.y = Math.PI / 4; roof.scale.z = .72;
+    add(h, new THREE.BoxGeometry(26, 42, 4), flat(0x7a5230), 0, 21, 51);
+    for (const wx2 of [-48, 48]) add(h, new THREE.BoxGeometry(26, 22, 4), glow(0xbfe6ff), wx2, 40, 51, false);
+    // rolling hills on the horizon
+    for (let i = 0; i < 10; i++) {
+      const a = i / 10 * TAU + R() * .4, d = 2500 + R() * 800, r = 500 + R() * 400;
+      const hill = mesh(new THREE.SphereGeometry(r, 16, 10), flat([0x5aa850, 0x4b9a46, 0x66b45a][i % 3]), Math.cos(a) * d, -r * .1, Math.sin(a) * d, false);
+      hill.scale.y = .32;
+    }
+    // drifting clouds
+    const cloudMat = flat(0xffffff);
+    for (let i = 0; i < 9; i++) {
+      const g = group((R() - .5) * 5000, (R() - .5) * 4000, .8 + R() * .8, 520 + R() * 260);
+      for (let k = 0; k < 4; k++) add(g, new THREE.IcosahedronGeometry(40 + R() * 30, 1), cloudMat, (k - 1.5) * 50, R() * 20, R() * 30, false);
+      const v = 10 + R() * 14;
+      anim.push((t, dt) => { g.position.x += v * dt; if (g.position.x > 3000) g.position.x = -3000; });
     }
   } else if (course.theme === 'desert') {
-    for (let i = 0; i < 26; i++) { // saguaros
-      const [x, z] = spot(), s = .8 + R() * 1.2, g = new THREE.Group();
-      g.position.set(x, 0, z); g.scale.setScalar(s); level3D.add(g);
+    const [ox, oz] = keep(200, 150);
+    for (let i = 0; i < 24; i++) { // saguaros
+      const [x, z] = spot(), g = group(x, z, .8 + R() * 1.2);
       cactusBumper(g, 22);
     }
-    for (let i = 0; i < 20; i++) {
-      const [x, z] = spot(), r = 10 + R() * 30;
-      const rock = mesh(new THREE.DodecahedronGeometry(r, 0), new THREE.MeshLambertMaterial({ color: 0xb06a3a, flatShading: true }), x, r * .4, z);
-      rock.rotation.set(R(), R(), R());
+    const barrel = flat(0x4c8a3a), bloom = glow(0xff6fa8);
+    for (let i = 0; i < 18; i++) { // round barrel cacti, some flowering
+      const [x, z] = spot(-60), r = 9 + R() * 8, g = group(x, z);
+      add(g, new THREE.SphereGeometry(r, 9, 6), barrel, 0, r * .9, 0).scale.y = 1.2;
+      if (R() < .6) add(g, new THREE.SphereGeometry(r * .35, 6, 4), bloom, 0, r * 2.1, 0, false);
     }
-    for (let i = 0; i < 7; i++) { // mesas on the horizon
-      const a = i / 7 * TAU + R(), d = 2200 + R() * 700, w = 200 + R() * 260, h = 160 + R() * 200;
-      mesh(new THREE.CylinderGeometry(w * .8, w, h, 7), new THREE.MeshLambertMaterial({ color: 0xc4703c, flatShading: true }), Math.cos(a) * d, h / 2 - 2, Math.sin(a) * d, false);
+    rocks(18, [0xb06a3a, 0xc27b45, 0x9a5a30], 18);
+    // a cow skull and some bones
+    const [sx, sz] = spot(-40), sk = group(sx, sz, 1.1), bone = flat(0xf4ecd8), dark = glow(0x2a1a10);
+    add(sk, new THREE.SphereGeometry(10, 8, 6), bone, 0, 8, 0).scale.set(1, .8, 1.3);
+    for (const s of [-1, 1]) {
+      const horn = add(sk, new THREE.ConeGeometry(3, 18, 6), bone, s * 12, 12, -4); horn.rotation.z = -s * 1.1;
+      add(sk, new THREE.SphereGeometry(2.6, 6, 4), dark, s * 4.5, 10, 10, false);
     }
+    for (let k = 0; k < 3; k++) { const b = add(sk, new THREE.CylinderGeometry(1.8, 1.8, 26, 6), bone, 24 + k * 8, 2, R() * 16 - 8); b.rotation.set(Math.PI / 2, 0, R() * 2); }
+    // an oasis with palm trees
+    const oasis = pond(ox, oz, 90, 0x3fa7c9, 0xc49a5a);
+    const palmTrunk = flat(0x9a6a3a), frond = flat(0x3f9a3f), nut = flat(0x6b4423);
+    for (let k = 0; k < 3; k++) {
+      const a = k / 3 * TAU + R(), palm = new THREE.Group(); palm.position.set(Math.cos(a) * 118, 0, Math.sin(a) * 118); oasis.add(palm);
+      const lean = .15 + R() * .2; palm.rotation.set(Math.sin(a) * lean, 0, -Math.cos(a) * lean);
+      for (let s = 0; s < 7; s++) add(palm, new THREE.CylinderGeometry(4.5 - s * .3, 5.5 - s * .3, 18, 6), palmTrunk, 0, 9 + s * 17, 0);
+      for (let f = 0; f < 6; f++) {
+        const fa = f / 6 * TAU, leaf = add(palm, new THREE.ConeGeometry(9, 70, 4), frond, Math.cos(fa) * 30, 122, Math.sin(fa) * 30);
+        leaf.scale.z = .25; leaf.rotation.set(Math.sin(fa) * 1.9, -fa, -Math.cos(fa) * 1.9);
+      }
+      for (let c = 0; c < 3; c++) add(palm, new THREE.SphereGeometry(4.5, 6, 4), nut, Math.cos(c * 2.1) * 6, 118, Math.sin(c * 2.1) * 6, false);
+    }
+    // dunes, and striped mesas on the horizon
+    for (let i = 0; i < 10; i++) {
+      const a = i / 10 * TAU + R() * .5, d = 1300 + R() * 700, r = 260 + R() * 260;
+      const dune = mesh(new THREE.SphereGeometry(r, 16, 8), flat(i % 2 ? 0xe2b673 : 0xd6a862), Math.cos(a) * d, -r * .05, Math.sin(a) * d, false);
+      dune.scale.set(1.4, .2, 1);
+    }
+    for (let i = 0; i < 7; i++) {
+      const a = i / 7 * TAU + R(), d = 2400 + R() * 700, w = 200 + R() * 260, h = 160 + R() * 200, g = group(Math.cos(a) * d, Math.sin(a) * d);
+      add(g, new THREE.CylinderGeometry(w * .82, w, h * .55, 7), flat(0xc4703c), 0, h * .275 - 2, 0, false);
+      add(g, new THREE.CylinderGeometry(w * .76, w * .82, h * .15, 7), flat(0xe39a5a), 0, h * .625 - 2, 0, false);
+      add(g, new THREE.CylinderGeometry(w * .7, w * .76, h * .3, 7), flat(0xa85a2e), 0, h * .85 - 2, 0, false);
+    }
+    // tumbleweeds bouncing across
+    const weed = new THREE.MeshLambertMaterial({ color: 0x9a7040, wireframe: true });
+    for (let i = 0; i < 3; i++) {
+      const g = group((R() - .5) * 3000, (R() < .5 ? -1 : 1) * (480 + R() * 260));
+      add(g, new THREE.IcosahedronGeometry(15, 1), weed, 0, 0, 0, false);
+      add(g, new THREE.IcosahedronGeometry(11, 1), weed, 0, 0, 0, false).rotation.set(.6, .4, 0);
+      const v = 70 + R() * 50, ph = R() * 5;
+      anim.push((t, dt) => {
+        g.position.x += v * dt; if (g.position.x > 1600) g.position.x = -1600;
+        g.position.y = 15 + Math.abs(Math.sin(t * 3.2 + ph)) * 22; g.rotation.z -= v / 15 * dt;
+      });
+    }
+    // a big hazy sun
+    const sunDisc = mesh(new THREE.SphereGeometry(190, 24, 16), new THREE.MeshBasicMaterial({ color: 0xfff1b8, fog: false }), 2200, 1350, -4300, false);
+    sunDisc.userData.noToon = true;
   } else {
-    for (let i = 0; i < 26; i++) {
-      const [x, z] = spot(), r = 8 + R() * 34;
-      const rock = mesh(new THREE.DodecahedronGeometry(r, 0), new THREE.MeshLambertMaterial({ color: 0x8a8c93, flatShading: true }), x, r * .3, z);
-      rock.rotation.set(R(), R(), R());
+    const [lx, lz] = keep(120, 110), [hx, hz] = keep(200, 170);
+    rocks(24, [0x8a8c93, 0x7b7d84, 0x9a9ca2], 22);
+    for (let i = 0; i < 12; i++) { // craters: a dark bowl inside a raised rim
+      const [x, z] = spot(80), r = 40 + R() * 90, g = group(x, z);
+      add(g, new THREE.CircleGeometry(r, 24), flat(0x45474e), 0, -1.4, 0, false).rotation.x = -Math.PI / 2;
+      const rim = add(g, new THREE.TorusGeometry(r, r * .12, 6, 28), flat(0x6b6d74), 0, 0, 0); rim.rotation.x = Math.PI / 2; rim.scale.z = .5;
     }
-    for (let i = 0; i < 12; i++) { // crater rims
-      const [x, z] = spot(), r = 40 + R() * 90;
-      const rim = mesh(new THREE.TorusGeometry(r, r * .12, 6, 28), mat(0x6b6d74), x, 0, z); rim.rotation.x = Math.PI / 2; rim.scale.z = .5;
+    // glowing crystal clusters that slowly pulse
+    const crystal = [0xb48cff, 0x6fe8ff].map(c => new THREE.MeshBasicMaterial({ color: c }));
+    for (let i = 0; i < 10; i++) {
+      const [x, z] = spot(-30), g = group(x, z, .8 + R() * .7), m = crystal[i % 2];
+      for (let k = 0; k < 4; k++) {
+        const hgt = 26 + R() * 34, c = add(g, new THREE.ConeGeometry(6 + R() * 4, hgt, 5), m, (R() - .5) * 18, hgt * .4, (R() - .5) * 18, false);
+        c.rotation.set((R() - .5) * .8, R() * 3, (R() - .5) * .8);
+      }
     }
-    // stars and the Earth
+    const base = crystal.map(m => m.color.clone());
+    anim.push(t => crystal.forEach((m, k) => m.color.copy(base[k]).multiplyScalar(.75 + .25 * Math.sin(t * 2 + k * 2))));
+    // a lunar lander with a flag
+    const lander = group(lx, lz, 1.2), gold = flat(0xd9a83a), steel = flat(0xc0c4cc);
+    add(lander, new THREE.BoxGeometry(46, 28, 46), gold, 0, 40, 0);
+    add(lander, new THREE.CylinderGeometry(18, 24, 26, 8), steel, 0, 67, 0);
+    add(lander, new THREE.SphereGeometry(12, 10, 6, 0, TAU, 0, Math.PI / 2), steel, 22, 80, 0).rotation.z = -.6;
+    for (const [sx2, sz2] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const leg = add(lander, new THREE.CylinderGeometry(2, 2, 46, 6), steel, sx2 * 30, 20, sz2 * 30); leg.rotation.set(-sz2 * .45, 0, sx2 * .45); // splay out at the feet
+      add(lander, new THREE.CylinderGeometry(7, 7, 2, 10), steel, sx2 * 40, 1, sz2 * 40);
+    }
+    add(lander, new THREE.CylinderGeometry(1.4, 1.4, 90, 6), steel, 70, 45, 10);
+    add(lander, new THREE.PlaneGeometry(40, 24), new THREE.MeshLambertMaterial({ color: 0xff7a3d, side: THREE.DoubleSide }), 90, 76, 10);
+    // a habitat dome with blinking windows and a dish
+    const hab = group(hx, hz, 1.3), white = flat(0xe8ecf2);
+    add(hab, new THREE.SphereGeometry(80, 20, 10, 0, TAU, 0, Math.PI / 2), white, 0, 0, 0);
+    add(hab, new THREE.TorusGeometry(80, 5, 6, 32), steel, 0, 2, 0).rotation.x = Math.PI / 2;
+    const lights = [];
+    for (let k = 0; k < 6; k++) {
+      const a = k / 6 * TAU, l = add(hab, new THREE.SphereGeometry(6, 8, 6), new THREE.MeshBasicMaterial({ color: 0x8ff7ff }), Math.cos(a) * 70, 34, Math.sin(a) * 70, false);
+      lights.push(l);
+    }
+    anim.push(t => lights.forEach((l, k) => l.material.color.setHex(Math.sin(t * 3 + k * 1.3) > -.2 ? 0x8ff7ff : 0x2a5a66)));
+    add(hab, new THREE.CylinderGeometry(2, 2, 70, 6), steel, 110, 35, 0);
+    const dish = add(hab, new THREE.SphereGeometry(26, 14, 8, 0, TAU, 0, Math.PI / 3), white, 110, 76, 0); dish.rotation.z = 2.4;
+    anim.push(t => { dish.rotation.y = t * .4; });
+    // stars, the Earth and a ringed planet
     const n = 1400, pos = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
       const u = R() * TAU, v = Math.acos(R() * 1.6 - .6), rr = 5200;
@@ -2169,7 +2360,13 @@ function buildScenery(R) {
       x.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 18; i++) { x.beginPath(); x.ellipse(R() * w, R() * h, 8 + R() * 20, 2 + R() * 4, 0, 0, TAU); x.fill(); }
     });
     const earth = new THREE.Mesh(new THREE.SphereGeometry(320, 32, 20), new THREE.MeshBasicMaterial({ map: earthTex, fog: false }));
-    earth.position.set(-1900, 1500, -3600); level3D.add(earth); level3D.userData.earth = earth;
+    earth.position.set(-1900, 1500, -3600); level3D.add(earth); U.earth = earth;
+    const bandTex = paintTex(8, 64, (x, w, h) => { for (let y = 0; y < h; y += 8) { x.fillStyle = ['#e8b57a', '#d4945a', '#f2d2a0', '#c27a48'][(y / 8) % 4]; x.fillRect(0, y, w, 8); } });
+    const planet = new THREE.Group(); planet.position.set(2300, 1700, -4300); planet.rotation.z = .35; level3D.add(planet);
+    planet.add(new THREE.Mesh(new THREE.SphereGeometry(210, 28, 18), new THREE.MeshBasicMaterial({ map: bandTex, fog: false })));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(280, 400, 48), new THREE.MeshBasicMaterial({ color: 0xd8c7a0, transparent: true, opacity: .75, side: THREE.DoubleSide, fog: false }));
+    ring.rotation.x = Math.PI / 2.3; planet.add(ring);
+    anim.push((t, dt) => { planet.children[0].rotation.y += dt * .08; });
   }
 }
 
@@ -2217,7 +2414,7 @@ function build3D() {
   // (the floor has a field-sized hole in it, so pits in the field can go down)
   const fs = new THREE.Shape([[-4500, -4500], [4500, -4500], [4500, 4500], [-4500, 4500]].map(p => new THREE.Vector2(...p)));
   fs.holes.push(new THREE.Path([[-W / 2, -H / 2], [-W / 2, H / 2], [W / 2, H / 2], [W / 2, -H / 2]].map(p => new THREE.Vector2(...p))));
-  const floor = mesh(new THREE.ShapeGeometry(fs), mat(th.floor), 0, -2, 0, false);
+  const floor = mesh(new THREE.ShapeGeometry(fs), new THREE.MeshLambertMaterial({ map: floorTex(course.theme, R) }), 0, -2, 0, false);
   floor.rotation.x = -Math.PI / 2; floor.userData.noToon = true;
   groundTex.needsUpdate = true;
   const ground = mesh(groundGeo(), new THREE.MeshLambertMaterial({ map: groundTex }), 0, 0, 0, false);
@@ -2599,6 +2796,7 @@ function drawTrolls(U) {
   for (const p of U.pulls || []) p.rotation.y = -time * 1.6;
   for (const { g } of U.bumpers) if (g.userData.spin) { g.userData.spin.rotation.y += drawDt * .6; g.userData.spin.rotation.x += drawDt * .3; }
   if (U.earth) U.earth.rotation.y += drawDt * .05;
+  for (const f of U.sceneryAnim || []) f(time, drawDt);
   if (U.tv) {
     U.tv.visible = !!(A && A.type === 'var');
     if (U.tv.visible) { place(U.tv, c.x, c.y, 140 + Math.sin(time * 3) * 3); turnToCamera(U.tv); }
