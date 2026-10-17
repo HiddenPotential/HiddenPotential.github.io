@@ -146,6 +146,7 @@
   #hud, .card, .club, .btn, #toast, .course, #hint { border: 3px solid #2b2118; }
   .club.sel { border-color: var(--accent); }
   #hud button { border: 2px solid #2b2118; font-family: "Pixelify Sans", sans-serif; }
+  #quitBtn { margin: 0 4px; }
   canvas, #mini { image-rendering: pixelated; image-rendering: crisp-edges; }
   canvas { border: 4px solid #2b2118; }
   .screen { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(15,26,16,.55); }
@@ -161,7 +162,7 @@
     <span class="stat">Strokes <b id="hStrokes">0</b></span>
     <span class="stat">Total <b id="hTotal">E</b></span>
     <span class="stat">🤬 Rage <b id="hRage">0%</b></span>
-    <span><button id="pixBtn" title="Pixel look on/off (P)">👾 Pixel</button> <button id="camBtn" title="Switch camera (C)">🎥 Overview</button> <button id="menuBtn" title="Course map">🗺️</button> <button id="mute" title="Toggle sound (M)">🔊</button></span>
+    <span><button id="pixBtn" title="Pixel look on/off (P)">👾 Pixel</button> <button id="camBtn" title="Switch camera (C)">🎥 Overview</button> <button id="menuBtn" title="Course map">🗺️</button> <button id="mute" title="Toggle sound (M)">🔊</button><button id="quitBtn" title="Give up">🏳️ Give up</button></span>
   </div>
 
   <div id="wrap">
@@ -236,7 +237,7 @@ const $ = id => document.getElementById(id);
 // ---------- Things you hit ----------
 // damp: speed kept per 1/60 s. bounce: wall restitution. power: shot strength multiplier.
 const ITEMS = {
-  golf:   { emoji: '⛳', name: 'Golf Ball',    r: 13, bounce: .6,  damp: .988, power: 1,    desc: 'A real golf ball. Finally, something normal.' },
+  golf:   { emoji: '⛳', name: 'Golf Ball',    r: 13, bounce: .62, damp: .99,  roll: 110, power: 1,    desc: 'A real golf ball. Finally, something normal.' },
   ring:   { emoji: '🛟', name: 'Life Ring',    r: 16, bounce: .7,  damp: .985, power: 1,    desc: 'Floats! Water only slows it down.', floats: true },
   egg:    { emoji: '🥚', name: 'Raw Egg',      r: 14, bounce: .45, damp: .986, power: 1,    desc: 'Fragile. Smack a wall too hard and it cracks (+1 stroke).', fragile: true },
   pizza:  { emoji: '🍕', name: 'Pizza Slice',  r: 16, bounce: .25, damp: .962, power: 1.15, desc: 'Greasy and sticky. Barely slides. Use the speed pads.' },
@@ -447,6 +448,18 @@ const LINES = {
   relocate: ['📍 Pin position updated. Thanks for your patience.', '📍 The hole has moved. Operational reasons.'],
   taunt:  ['Skill issue.', 'Have you tried hitting it into the hole?', 'So close. (Not really.)', 'My grandma putts better.',
            'The cup is right there.', 'Unlucky. Or bad. Probably bad.', 'Bold strategy.', 'Interesting choice.'],
+  // once the rage meter is high the commentator gets meaner
+  meantaunt: ['Have you considered bowling?', 'The windmill is laughing at you.', 'A pigeon could do this. A pigeon did, earlier.',
+              'Breathe in. Breathe out. Miss again.', 'Rage looks good on you.', 'Wow. Just wow.', 'Are you hitting it with your eyes closed?'],
+  nearmiss: ['😱 OOOOH! So close!', '😱 It kissed the cup and left.', '😱 The cup said "no thank you."', '😱 Grazed it! The crowd groans.'],
+  teeter:   ['😬 It is teetering…', '😬 Wobble… wobble…', '😬 It is right on the edge…'],
+  teetered: ['🙃 Nope.', '🙃 Changed its mind.', '🙃 So, so close. Not in.', '🙃 Gravity took the day off.'],
+  slope:    ['⛰️ Oh, did we mention the green slopes? Toward you.', '⛰️ It is rolling back. Classic green.', '⛰️ The green is not flat. Sorry.'],
+  noquit:   ['🏳️ Request denied.', '🏳️ Giving up is not an option.', '🏳️ Nice try.', '🏳️ The course does not accept surrender.',
+             '🏳️ Quitters never win. Also, you are not winning.', '🏳️ Error 418: you are a teapot. Keep playing.'],
+  rage50:   ['🤬 Rage 50%. Warming up nicely.'],
+  rage80:   ['🤬 Rage 80%. Maybe put the mouse down for a second.'],
+  rage100:  ['🤬 RAGE 100%. Achievement unlocked: Certified Gamer Moment.'],
 };
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
@@ -483,6 +496,7 @@ const sfx = {
   },
   wall(v) { tone(180 + Math.random() * 40, .06, 'square', Math.min(.12, v / 6000)); },
   boing() { tone(300, .25, 'sine', .2, 900); },
+  groan() { [330, 262, 196].forEach((f, i) => tone(f, .5, 'sawtooth', .04, f * .8, i * .02)); noise(.6, .05, 500); },
   splash() { noise(.6, .3, 900); tone(400, .3, 'sine', .08, 120); },
   crack() { noise(.12, .4, 4000); tone(1400, .05, 'square', .1, 700); },
   ribbit() { tone(140, .08, 'square', .15, 110); tone(160, .1, 'square', .15, 120, .12); },
@@ -547,7 +561,7 @@ function placeBall(x, y) {
 
 function startGame(key = course.key) {
   course = COURSES.find(c => c.key === key);
-  scores = []; rage = 0; peakRage = 0;
+  scores = []; rage = 0; peakRage = 0; rageMarks = 0; quitTries = 0;
   loadHole(0);
 }
 const bestKey = k => k === 'meadow' ? 'wackyRageGolfBest' : 'wackyRageGolfBest_' + k;
@@ -654,6 +668,13 @@ window.addEventListener('keydown', e => {
 });
 function toggleMute() { muted = !muted; $('mute').textContent = muted ? '🔇' : '🔊'; }
 $('mute').onclick = toggleMute;
+// the give-up button never lets you give up, and hops to a different spot each time
+$('quitBtn').onclick = e => {
+  quitTries++;
+  toast(pick(LINES.noquit), 1600); laugh(); addRage(4);
+  const b = e.currentTarget, row = b.parentNode, others = [...row.children].filter(x => x !== b);
+  row.insertBefore(b, pick(others));
+};
 
 // ---------- Shooting ----------
 function shoot({ ang, power }) {
@@ -665,7 +686,7 @@ function shoot({ ang, power }) {
   ball.spin = 0;
   ball.air = 0;
   if (club.lob) { ball.airT = (.35 + .55 * power) * (course.lowGrav ? 1.5 : 1); ball.air = ball.airT; }
-  ball.moving = true; ball.hopped = false; ball.stopT = 0;
+  ball.moving = true; ball.hopped = false; ball.stopT = 0; ball.minD = Infinity; ball.trolled = false;
   T.gustThisShot = false;
   strokes++; updateHud();
   swing = { t: 0, ang, club, power };
@@ -732,8 +753,10 @@ function bounce(nx, ny, vn, rvx, rvy, ux, uy) {
   if (item.fragile && impact > 470 && !ball.air) { sfx.crack(); for (let i = 0; i < 20; i++) puff(ball.x, ball.y, i % 2 ? '#ffd23d' : '#fff', 200); penalty('crack'); return; }
   // super-bouncy items only gain energy on gentle hits, so they can't ping-pong forever
   const e = item.bounce > 1 && impact > 450 ? .8 : item.bounce;
-  ball.vx = rvx - (1 + e) * vn * nx + ux;
-  ball.vy = rvy - (1 + e) * vn * ny + uy;
+  // bounce back off the wall, and lose a little of the speed along it to friction
+  const tx = rvx - vn * nx, ty = rvy - vn * ny, grip = .93;
+  ball.vx = tx * grip - e * vn * nx + ux;
+  ball.vy = ty * grip - e * vn * ny + uy;
   // cap speed so the cheese can't go to space
   const s = Math.hypot(ball.vx, ball.vy);
   if (s > 1400) { ball.vx *= 1400 / s; ball.vy *= 1400 / s; }
@@ -793,7 +816,17 @@ function step(dt) {
   const wasAir = ball.air > 0;
   if (ball.air > 0) {
     ball.air -= dt;
-    if (ball.air <= 0) { ball.air = 0; tone(200, .08, 'sine', .15, 90); for (let i = 0; i < 6; i++) puff(ball.x, ball.y, '#e8f5d0'); }
+    if (ball.air <= 0) {
+      ball.air = 0;
+      // landing: bounce on with a lower, shorter hop (losing some speed to the ground),
+      // but plug in sand, and don't skip over water or holes
+      const soft = hole.sand.some(r => inRect(ball.x, ball.y, r));
+      const drop = soft || hole.water.some(r => inRect(ball.x, ball.y, r)) || pitAt(ball.x, ball.y);
+      if (soft) { ball.vx *= .3; ball.vy *= .3; }
+      if (!drop && ball.airT > .2) { ball.airT *= .42; ball.air = ball.airT; ball.vx *= .8; ball.vy *= .8; }
+      tone(ball.air ? 260 : 200, .07, 'sine', ball.air ? .1 : .15, 90);
+      for (let i = 0; i < 6; i++) puff(ball.x, ball.y, soft ? '#f2dca0' : '#e8f5d0');
+    }
   }
   const air = ball.air > 0;
   const sp0 = Math.hypot(ball.vx, ball.vy);
@@ -823,8 +856,10 @@ function step(dt) {
   if (inSand) damp = item.heavy ? .95 : .9;
   if (inWater && item.floats) damp = .955;
   const sNow = Math.hypot(ball.vx, ball.vy);
-  // exponential drag plus a little rolling friction so nothing slides forever
-  const f = Math.pow(damp, dt * 60) * (sNow > 0 ? Math.max(0, 1 - (air ? 0 : course.lowGrav ? 30 : 45) * dt / sNow) : 1);
+  // a little drag plus steady rolling resistance: a putt keeps its pace, then dies smoothly
+  // instead of creeping along forever (things weigh less on the moon, so they roll further)
+  const roll = air ? 0 : (item.roll || 45) * (course.lowGrav ? .65 : 1);
+  const f = Math.pow(damp, dt * 60) * (sNow > 0 ? Math.max(0, 1 - roll * dt / sNow) : 1);
   ball.vx *= f; ball.vy *= f;
 
   ball.x += ball.vx * dt; ball.y += ball.vy * dt;
@@ -879,11 +914,21 @@ function step(dt) {
   if (!air) for (const c of cups) {
     if (cupBlocked(c)) continue; // lid shut or mole up: it just rolls over
     const dx = c.x - ball.x, dy = c.y - ball.y, d = Math.hypot(dx, dy) || 1e-6;
-    if (d < 13 && sp < 520) { if (c.real) sink(); else startAnim('trap', { c }); return; }
-    if (d < 13 && sp >= 520 && !ball.lipped) { ball.lipped = true; toast(pick(LINES.lip), 1200); ball.vx += -dy / d * 60; ball.vy += dx / d * 60; }
-    if (d < 34 && sp < 380) { ball.vx += dx / d * 700 * dt; ball.vy += dy / d * 700 * dt; }
+    // it drops if it's slow enough for how centred it is: dead centre can take a firm putt,
+    // over the edge it has to be dying
+    const cap = 560 * (1 - .55 * (d / 15) ** 2);
+    if (d < 15 && sp < cap) { if (c.real) sink(); else startAnim('trap', { c }); return; }
+    if (d < 15 && !ball.lipped) { // lip out: the rim swings it round and slows it
+      ball.lipped = true;
+      if (sp >= 520) toast(pick(LINES.lip), 1200);
+      const nvx = ball.vx - dx / d * sp * .35, nvy = ball.vy - dy / d * sp * .35, ns = Math.hypot(nvx, nvy) || 1;
+      ball.vx = nvx / ns * sp * .8; ball.vy = nvy / ns * sp * .8;
+    }
+    // the green slopes gently down into the cup
+    if (d < 30 && sp < 300) { ball.vx += dx / d * 420 * (1 - d / 30) * dt; ball.vy += dy / d * 420 * (1 - d / 30) * dt; }
   }
-  if (!cups.some(c => Math.hypot(c.x - ball.x, c.y - ball.y) < 13)) ball.lipped = false;
+  if (!cups.some(c => Math.hypot(c.x - ball.x, c.y - ball.y) < 15)) ball.lipped = false;
+  if (!air) ball.minD = Math.min(ball.minD ?? Infinity, Math.hypot(realCup().x - ball.x, realCup().y - ball.y));
 
   if (!air && !onBoost && sp < 7) {
     ball.vx = ball.vy = 0; ball.moving = false; ball.stopT = 0; ball.spin = 0;
@@ -941,7 +986,7 @@ function endGame() {
   $('endEmoji').textContent = d <= 0 ? '🏆' : d <= 8 ? '😤' : peakRage >= 90 ? '🤬' : '🫠';
   $('endTitle').textContent = `${course.emoji} ${course.name}: ${total} strokes (${fmtPar(d)})`;
   $('endLine').textContent = (d <= 0 ? 'You beat the course. It is furious about it.' : d <= 8 ? 'You survived. Barely.' : 'The course wins this time.') +
-    ` Peak rage: ${Math.round(peakRage)}%.`;
+    ` Peak rage: ${Math.round(peakRage)}%.` + (quitTries ? ` You tried to give up ${quitTries} time${quitTries > 1 ? 's' : ''}.` : '');
   let rows = '<tr><th>Hole</th><th></th><th>Par</th><th>You</th></tr>';
   course.holes.forEach((h, i) => rows += `<tr><th>${i + 1}. ${h.name}</th><td>${ITEMS[h.item].emoji}</td><td>${h.par}</td><td>${scores[i]}</td></tr>`);
   rows += `<tr><th>Total</th><td></td><td>${par}</td><td><b>${total}</b></td></tr>`;
@@ -959,7 +1004,13 @@ let cups = [], T = { fx: {} }, rage = 0, peakRage = 0;
 const realCup = () => cups.find(c => c.real);
 const ease = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
 
-function addRage(n) { rage = clamp(rage + n, 0, 100); peakRage = Math.max(peakRage, rage); updateHud(); }
+let rageMarks = 0, quitTries = 0;
+function addRage(n) {
+  rage = clamp(rage + n, 0, 100); peakRage = Math.max(peakRage, rage); updateHud();
+  // say something the first time the meter passes 50, 80 and 100 in a round
+  const marks = [50, 80, 100], k = marks.filter(m => rage >= m).length;
+  if (k > rageMarks) { rageMarks = k; setTimeout(() => toast(LINES['rage' + marks[k - 1]][0], 2200), 1900); }
+}
 function laugh() { [392, 370, 349, 330].forEach((f, i) => tone(f, i === 3 ? .7 : .22, 'triangle', .14, i === 3 ? 300 : 0, i * .24)); }
 
 function setupTrolls() {
@@ -970,6 +1021,8 @@ function setupTrolls() {
     thief: tr.thief || 0, ufo: tr.ufo || 0, var: tr.var || 0, gust: tr.gust || 0, crow: tr.crow || 0, relocate: [...(tr.relocate || [])],
     flee: tr.flee || 0, fleeing: false, lidOn: !!tr.lid, lid: 0, lidWant: 0, lidRest: 0, lidSlams: 3, mole: !!tr.mole, moleUp: 0,
     gustThisShot: false, anim: null, fx: {},
+    // on every hole: the ball teeters on the lip once, and the green slopes back toward you once
+    teeter: 1, slope: 1,
   };
 }
 function shuffleCups() { const k = Math.floor(Math.random() * cups.length); cups.forEach((c, i) => c.real = i === k); }
@@ -1053,7 +1106,12 @@ function onStop() {
     const ch = makeChunk(ball.x + (Math.random() - .5) * 16, ball.y + (Math.random() - .5) * 16, 34 + Math.random() * 8);
     if (chunkFits(ch, 30) && inPoly(ball.x, ball.y, ch.pts)) { C.stalk--; chunks.push(ch); quake(ch); return; }
   }
-  if (strokes > 0 && Math.random() < .35) { toast(pick(LINES.taunt), 1600); addRage(3); }
+  // stopped right next to the cup: creep up to the lip, wobble... and not go in
+  if (T.teeter > 0 && d < 45 && !cupBlocked(c) && Math.random() < .75) { T.teeter--; startAnim('teeter', { bx: ball.x, by: ball.y }); return; }
+  // stopped close: the green turns out to slope back toward where you hit from
+  if (T.slope > 0 && !ball.trolled && d > 45 && d < 150 && strokes > 0 && Math.random() < .5) { T.slope--; startAnim('slope'); return; }
+  if (ball.minD < 30 && d > 40 && !ball.trolled) { toast(pick(LINES.nearmiss), 1700); sfx.groan(); addRage(7); return; }
+  if (strokes > 0 && Math.random() < .35) { toast(pick(LINES[rage >= 60 ? 'meantaunt' : 'taunt']), 1600); addRage(3); }
 }
 
 function relocateCup(c) {
@@ -1146,6 +1204,31 @@ function trollAnim(dt) {
     const k = Math.min(1, A.t / .8);
     ball.carryH = -k * k * 160;
     if (A.t > .9) { ball.carryH = undefined; endAnim(); penalty('crumble'); }
+  } else if (A.type === 'teeter') {
+    // creep up to the lip, wobble on it with a drumroll, then roll back out
+    const dx = c.x - A.bx, dy = c.y - A.by, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+    const lip = d - 15.5;
+    if (A.t < .7) { const k = ease(A.t / .7); ball.x = A.bx + ux * lip * k; ball.y = A.by + uy * lip * k; }
+    else if (A.t < 2.3) {
+      if (!A.said) { A.said = 1; toast(pick(LINES.teeter), 1500); }
+      const w = Math.sin((A.t - .7) * 16) * (1 + (A.t - .7) * 1.6);
+      ball.x = A.bx + ux * (lip + w); ball.y = A.by + uy * (lip + w);
+      if (Math.floor(A.t * 14) !== A.tick) { A.tick = Math.floor(A.t * 14); noise(.05, .12, 400 + A.t * 200); }
+    } else {
+      ball.x = A.bx + ux * lip; ball.y = A.by + uy * lip;
+      ball.vx = -ux * 140; ball.vy = -uy * 140; ball.moving = true; ball.trolled = true;
+      toast(pick(LINES.teetered), 1800); addRage(14); laugh();
+      endAnim();
+    }
+  } else if (A.type === 'slope') {
+    // a beat of calm, then it starts rolling back toward where you hit from
+    if (A.t > .8) {
+      const [lx, ly] = ball.last, dx = lx - ball.x, dy = ly - ball.y, d = Math.hypot(dx, dy) || 1;
+      const v = Math.sqrt(2 * (item.roll || 45) * Math.min(d * .6, 160)); // enough to undo a good chunk of the putt
+      ball.vx = dx / d * v; ball.vy = dy / d * v; ball.moving = true; ball.trolled = true;
+      toast(pick(LINES.slope), 2200); addRage(10); tone(300, .5, 'sine', .1, 150);
+      endAnim();
+    }
   } else if (A.type === 'trap') {
     // it drops into a fake cup and comes back out at the tee
     ball.x += (A.c.x - ball.x) * .25; ball.y += (A.c.y - ball.y) * .25;
@@ -2693,8 +2776,9 @@ function screenToField(e) {
 
 function liftOf() {
   if (!(ball.air > 0)) return 0;
-  const k = 1 - ball.air / ball.airT;
-  return Math.sin(k * Math.PI) * (course.lowGrav ? 120 : 75) * Math.min(1, ball.airT + .25);
+  // a real parabola: the peak height grows with the square of the hang time
+  const k = 1 - ball.air / ball.airT, g = course.lowGrav ? 520 : 740;
+  return g * ball.airT * ball.airT * k * (1 - k) / 2;
 }
 
 // flat things painted on the ground each frame: water ripples, aim guide, rings
