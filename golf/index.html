@@ -440,6 +440,10 @@ const LINES = {
   lid:    ['🚫 Closed for lunch!', '🚫 Lid slammed shut. Too slow!'],
   mole:   ['🐹 Hey! I live here!', '🐹 Get off my lawn.'],
   trap:   ['🤡 Trapdoor! That cup was fake. +1 stroke', '🤡 Painted on. The cups have shuffled. +1 stroke'],
+  quake:  ['🫨 Is the ground... shaking?', "🫨 Uh oh. That doesn't sound good.", '🫨 Hit it! Quick!', '🫨 Something is cracking. It is you. No wait, it is the ground.'],
+  crumble: ['🕳️ The ground just gave up. +1 stroke', '🕳️ Course maintenance has been cancelled. +1 stroke', '🕳️ It fell through the floor. +1 stroke',
+            '🕳️ Structural integrity: 0%. +1 stroke'],
+  crumbling: ['🧱 Bits of the course are falling off. Totally normal.', '🧱 The course is falling apart. Literally.', '🧱 Was that piece important? Probably not.'],
   relocate: ['📍 Pin position updated. Thanks for your patience.', '📍 The hole has moved. Operational reasons.'],
   taunt:  ['Skill issue.', 'Have you tried hitting it into the hole?', 'So close. (Not really.)', 'My grandma putts better.',
            'The cup is right there.', 'Unlucky. Or bad. Probably bad.', 'Bold strategy.', 'Interesting choice.'],
@@ -516,6 +520,7 @@ function prepLevel(i) {
   setItem(hole.item);
   placeBall(...hole.start);
   setupTrolls();
+  setupChunks();
   build3D();
   updateHud();
 }
@@ -674,6 +679,7 @@ function penalty(kind) {
   strokes++; addRage(8);
   toast(pick(LINES[kind === 'splash' ? theme().splash : kind]));
   ball.x = ball.last[0]; ball.y = ball.last[1];
+  if (broken(ball.x, ball.y)) [ball.x, ball.y] = hole.start; // the spot you hit from fell away too
   ball.vx = ball.vy = 0; ball.spin = 0; ball.air = 0; ball.moving = false; ball.hopped = true;
   checkGiveUp();
 }
@@ -860,6 +866,14 @@ function step(dt) {
     }
   } else ball.swam = false;
 
+  // holes in the ground (a lob flies over them)
+  if (!air) {
+    const pit = pitAt(ball.x, ball.y);
+    if (pit) { fallIn(pit); return; }
+    const ch = chunks.find(c => c.st === 'idle' && !c.rolled && inPoly(ball.x, ball.y, c.pts));
+    if (ch) { ch.rolled = true; if (Math.random() < .3) crack(ch, .5); }
+  }
+
   // cups (only one of them is real)
   const sp = Math.hypot(ball.vx, ball.vy);
   if (!air) for (const c of cups) {
@@ -1032,6 +1046,13 @@ function onStop() {
   const c = realCup(), d = Math.hypot(c.x - ball.x, c.y - ball.y);
   if (T.crow > 0 && d < 170) { T.crow--; startAnim('crow'); return; }
   if (T.relocate.length && d < 200) { relocateCup(c); return; }
+  // the ground gives way under it: once on a weak spot, and (more evil) once or twice near the cup
+  const under = chunks.find(ch => ch.st === 'idle' && inPoly(ball.x, ball.y, ch.pts));
+  if (under && C.traps > 0) { C.traps--; quake(under); return; }
+  if (C.stalk > 0 && d < 320 && Math.random() < .6) {
+    const ch = makeChunk(ball.x + (Math.random() - .5) * 16, ball.y + (Math.random() - .5) * 16, 34 + Math.random() * 8);
+    if (chunkFits(ch, 30) && inPoly(ball.x, ball.y, ch.pts)) { C.stalk--; chunks.push(ch); quake(ch); return; }
+  }
   if (strokes > 0 && Math.random() < .35) { toast(pick(LINES.taunt), 1600); addRage(3); }
 }
 
@@ -1115,10 +1136,16 @@ function trollAnim(dt) {
     // "checking"... then it's disallowed and goes back where you hit it from
     if (A.t > 2.1) {
       const [lx, ly] = ball.last;
-      placeBall(lx, ly);
+      placeBall(...(broken(lx, ly) ? hole.start : [lx, ly]));
       toast(pick(LINES.var), 2400); addRage(16); laugh();
       endAnim();
     }
+  } else if (A.type === 'drop') {
+    // down the hole it goes, then back to where you hit it from
+    ball.x += (A.ch.x - ball.x) * .03; ball.y += (A.ch.y - ball.y) * .03;
+    const k = Math.min(1, A.t / .8);
+    ball.carryH = -k * k * 160;
+    if (A.t > .9) { ball.carryH = undefined; endAnim(); penalty('crumble'); }
   } else if (A.type === 'trap') {
     // it drops into a fake cup and comes back out at the tee
     ball.x += (A.c.x - ball.x) * .25; ball.y += (A.c.y - ball.y) * .25;
@@ -1139,6 +1166,122 @@ function trollAnim(dt) {
 function trollFx(dt) {
   for (const k of ['hand']) if (T.fx[k] > 0) T.fx[k] -= dt;
   for (const k of ['gust', 'ufo', 'crow']) if (T.fx[k]) { T.fx[k].t -= dt; if (T.fx[k].t <= 0) T.fx[k] = null; }
+}
+
+// ---------- Crumbling ground: bits of the course break off ----------
+// Chunks of ground crack, shake and drop away, leaving a pit. Fall in and it's +1 stroke, like water;
+// a lob (the wedge) flies over, so a pit never makes a hole impossible. Pits keep clear of walls,
+// hazards and each other, the tee and the cups never crumble, and each hole only has so many.
+let chunks = [], C = {};
+const DIRT = { grass: 0x6b4a2b, desert: 0x8a5a2b, moon: 0x34363d };
+const DUST = { grass: '#9a7a4f', desert: '#d8b07a', moon: '#a4a6ae' };
+
+function inPoly(x, y, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+const rectDist = (x, y, r) => Math.hypot(x - clamp(x, r[0], r[0] + r[2]), y - clamp(y, r[1], r[1] + r[3]));
+const pitAt = (x, y) => chunks.find(ch => (ch.st === 'fall' || ch.st === 'gone') && inPoly(x, y, ch.pts));
+const broken = (x, y) => chunks.some(ch => ch.st !== 'idle' && inPoly(x, y, ch.pts));
+
+// a jagged chunk of ground around (x, y), with the cracks it will show before it goes
+function makeChunk(x, y, size) {
+  const n = 9, pts = [];
+  let rad = 0;
+  for (let i = 0; i < n; i++) {
+    const a = i * TAU / n + (Math.random() - .5) * .5, r = size * (.72 + Math.random() * .38);
+    pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]); rad = Math.max(rad, r);
+  }
+  const cracks = [];
+  for (let k = 0; k < 4; k++) {
+    let a = Math.random() * TAU, cx = x + (Math.random() - .5) * 10, cy = y + (Math.random() - .5) * 10;
+    const line = [[cx, cy]];
+    for (let j = 1; j <= 4; j++) { a += (Math.random() - .5) * .9; cx += Math.cos(a) * size / 4.2; cy += Math.sin(a) * size / 4.2; line.push([cx, cy]); }
+    cracks.push(line);
+  }
+  return { x, y, rad, pts, cracks, st: 'idle', t: 0, warn: 1, drop: 0, vy: 0 };
+}
+
+// room for this chunk? keep a little gap to walls and hazards, a bigger one to other pits, and stay away from the tee and cups
+// (cupGap: how far its edge stays from a cup; the ones that open under your item are allowed a bit closer)
+function chunkFits(ch, cupGap = 75) {
+  const { x, y, rad } = ch, gap = rad + 14, tr = hole.trolls || {};
+  if (x < B + gap || x > W - B - gap || y < B + gap || y > H - B - gap) return false;
+  for (const r of [...hole.walls, ...hole.water, ...hole.sand, ...hole.boosts]) if (rectDist(x, y, r) < gap) return false;
+  for (const m of hole.movers) {
+    const r = [Math.min(m[0], m[0] + m[4]), Math.min(m[1], m[1] + m[5]), m[2] + Math.abs(m[4]), m[3] + Math.abs(m[5])];
+    if (rectDist(x, y, r) < gap) return false;
+  }
+  for (const bm of hole.bumpers) if (Math.hypot(x - bm[0], y - bm[1]) < bm[2] + gap) return false;
+  for (const m of hole.mills) if (Math.hypot(x - m[0], y - m[1]) < m[2] + gap) return false;
+  for (const pl of hole.pulls) if (Math.hypot(x - pl[0], y - pl[1]) < pl[2] + rad + 20) return false;
+  const keep = [hole.start, hole.cup, ...(hole.fakes || []), ...(tr.relocate || []), ...(tr.crowDrops || []), ...cups.map(c => [c.x, c.y])];
+  if (Math.hypot(x - hole.start[0], y - hole.start[1]) < rad + 75) return false;
+  for (const [px, py] of keep) if (Math.hypot(x - px, y - py) < rad + cupGap) return false;
+  if (tr.fleeZone && rectDist(x, y, tr.fleeZone) < rad + 30) return false;
+  for (const o of chunks) if (o !== ch && Math.hypot(x - o.x, y - o.y) < rad + o.rad + 40) return false;
+  return true;
+}
+
+// weak spots are hidden all over the hole. They look exactly like normal ground.
+function setupChunks() {
+  chunks = [];
+  C = { traps: 1, stalk: hole.par >= 4 ? 2 : 1, next: 3 + Math.random() * 2, said: false };
+  const want = 4 + Math.floor(Math.random() * 3);
+  for (let tries = 0; tries < 300 && chunks.length < want; tries++) {
+    const ch = makeChunk(B + Math.random() * (W - 2 * B), B + Math.random() * (H - 2 * B), 36 + Math.random() * 20);
+    if (chunkFits(ch)) chunks.push(ch);
+  }
+}
+
+// start a chunk cracking; it drops after `warn` seconds
+function crack(ch, warn) {
+  ch.st = 'crack'; ch.t = ch.warn = warn;
+  tone(70, warn, 'sawtooth', .06, 45); noise(.25, .25, 500);
+  for (let i = 0; i < 10; i++) { const [px, py] = pick(ch.pts); puff(px, py, DUST[course.theme], 60, .6, 4); }
+  punchGround(ch);
+}
+function quake(ch) { crack(ch, 1.1); toast(pick(LINES.quake), 1400); addRage(6); }
+
+function fallIn(ch) {
+  ball.vx = ball.vy = 0; ball.moving = false;
+  tone(520, .7, 'sine', .12, 70);
+  startAnim('drop', { ch });
+}
+
+function updateChunks(dt) {
+  for (const ch of chunks) {
+    if (ch.st === 'crack') {
+      ch.t -= dt;
+      if (Math.random() < .3) { const [px, py] = pick(ch.pts); puff(px, py, DUST[course.theme], 50, .5, 3); }
+      if (ch.t <= 0) {
+        ch.st = 'fall';
+        noise(.7, .35, 400); tone(110, .8, 'triangle', .14, 35);
+        for (let i = 0; i < 30; i++) { const [px, py] = pick(ch.pts); puff(px, py, DUST[course.theme], 160, .8, 5); }
+        shake = Math.max(shake, 4);
+      }
+    } else if (ch.st === 'fall') {
+      ch.vy += (course.lowGrav ? 450 : 1400) * dt; ch.drop += ch.vy * dt;
+      if (ch.drop > 320) { ch.st = 'gone'; level3D.remove(ch.tile); }
+    }
+  }
+  if (state !== 'play') return;
+  // the ground can give way under an item that is just sitting there
+  if (!ball.moving && !ball.gone) { const pit = pitAt(ball.x, ball.y); if (pit) { fallIn(pit); return; } }
+  // and every so often a bit of the course just falls off on its own
+  C.next -= dt;
+  if (C.next <= 0) {
+    C.next = 6 + Math.random() * 5;
+    const ok = chunks.filter(ch => ch.st === 'idle' && Math.hypot(ch.x - ball.x, ch.y - ball.y) > ch.rad + 90);
+    if (ok.length) {
+      crack(pick(ok), 1.2);
+      if (!C.said) { C.said = true; setTimeout(() => toast(pick(LINES.crumbling), 1800), 900); addRage(4); }
+    }
+  }
 }
 
 // ---------- Drawing ----------
@@ -2071,11 +2214,15 @@ function build3D() {
   hemi.intensity = th.hemi; sun.color.setHex(th.sun);
 
   // surroundings, the field and the flat effects layer
-  const floor = mesh(new THREE.PlaneGeometry(9000, 9000), mat(th.floor), 0, -2, 0, false);
+  // (the floor has a field-sized hole in it, so pits in the field can go down)
+  const fs = new THREE.Shape([[-4500, -4500], [4500, -4500], [4500, 4500], [-4500, 4500]].map(p => new THREE.Vector2(...p)));
+  fs.holes.push(new THREE.Path([[-W / 2, -H / 2], [-W / 2, H / 2], [W / 2, H / 2], [W / 2, -H / 2]].map(p => new THREE.Vector2(...p))));
+  const floor = mesh(new THREE.ShapeGeometry(fs), mat(th.floor), 0, -2, 0, false);
   floor.rotation.x = -Math.PI / 2; floor.userData.noToon = true;
   groundTex.needsUpdate = true;
-  const ground = mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshLambertMaterial({ map: groundTex }), 0, 0, 0, false);
+  const ground = mesh(groundGeo(), new THREE.MeshLambertMaterial({ map: groundTex }), 0, 0, 0, false);
   ground.rotation.x = -Math.PI / 2; ground.userData.noToon = true;
+  level3D.userData.ground = ground;
   const decal = mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: decoTex, transparent: true, depthWrite: false }), 0, .5, 0, false);
   decal.rotation.x = -Math.PI / 2; decal.renderOrder = 1; decal.receiveShadow = false;
 
@@ -2166,6 +2313,54 @@ function build3D() {
   toonify(level3D);
   resize3D();
   snapCamera = true;
+}
+
+// ----- crumbling ground in 3D -----
+// a flat outline of field points, in the shape's own coordinates (centered on cx, cy, y pointing up the screen)
+function polyShape(pts, cx, cy) {
+  return new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x - cx, cy - y)));
+}
+// map a shape-based geometry onto the painted field, so the pieces line up with the picture
+function fieldUV(g, cx, cy) {
+  const p = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) uv.setXY(i, (cx + p.getX(i)) / W, 1 - (cy - p.getY(i)) / H);
+  uv.needsUpdate = true;
+  return g;
+}
+// the field, with a hole wherever the ground has broken
+function groundGeo() {
+  const s = polyShape([[0, 0], [0, H], [W, H], [W, 0]], W / 2, H / 2);
+  for (const ch of chunks) if (ch.st !== 'idle') s.holes.push(polyShape(ch.pts, W / 2, H / 2));
+  return fieldUV(new THREE.ShapeGeometry(s), W / 2, H / 2);
+}
+// cut the chunk out of the ground: a loose slab of turf sits in the hole until it drops into the pit below
+function punchGround(ch) {
+  const U = level3D.userData;
+  U.ground.geometry.dispose(); U.ground.geometry = groundGeo();
+  const shape = polyShape(ch.pts, ch.x, ch.y), dirt = DIRT[course.theme];
+  const tile = new THREE.Mesh(fieldUV(new THREE.ExtrudeGeometry(shape, { depth: 30, bevelEnabled: false }), ch.x, ch.y),
+    [new THREE.MeshLambertMaterial({ map: groundTex }), mat(dirt)]);
+  tile.rotation.x = -Math.PI / 2; tile.receiveShadow = true; place(tile, ch.x, ch.y, -30); level3D.add(tile);
+  // the pit is a deep column seen from the inside: dirt walls, black at the bottom
+  const pit = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 240, bevelEnabled: false }),
+    [new THREE.MeshBasicMaterial({ color: 0x070403, side: THREE.BackSide }), mat(dirt, { side: THREE.BackSide, emissive: new THREE.Color(dirt).multiplyScalar(.35) })]);
+  pit.rotation.x = -Math.PI / 2; place(pit, ch.x, ch.y, -240); level3D.add(pit);
+  ch.tile = tile; ch.tumble = [(Math.random() - .5) * 1.6, (Math.random() - .5) * 1.6];
+}
+// the slab shakes while it cracks, then tumbles away
+function drawChunks() {
+  for (const ch of chunks) {
+    const t = ch.tile;
+    if (!t || ch.st === 'gone') continue;
+    if (ch.st === 'crack') {
+      const a = 3 * (1 - ch.t / ch.warn);
+      place(t, ch.x + (Math.random() - .5) * a, ch.y + (Math.random() - .5) * a, -30 - Math.random() * .4);
+    } else {
+      place(t, ch.x, ch.y, -30 - ch.drop);
+      const k = ch.drop / 300;
+      t.rotation.set(-Math.PI / 2 + ch.tumble[0] * k, ch.tumble[1] * k, 0);
+    }
+  }
 }
 
 // ----- particles as a point cloud -----
@@ -2309,6 +2504,21 @@ function liftOf() {
 function drawDecals() {
   ctx.setTransform(DS, 0, 0, DS, 0, 0);
   ctx.clearRect(0, 0, W, H);
+  for (const ch of chunks) {
+    if (ch.st === 'idle') continue;
+    const k = ch.st === 'crack' ? 1 - ch.t / ch.warn : 1;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = `rgba(30,18,8,${(.4 + .5 * k).toFixed(2)})`;
+    ctx.lineWidth = ch.st === 'crack' ? 1 + 2 * k : 3;
+    ctx.beginPath(); ch.pts.forEach(([x, y]) => ctx.lineTo(x, y)); ctx.closePath(); ctx.stroke();
+    if (ch.st === 'crack') {
+      ctx.lineWidth = 2.5;
+      for (const line of ch.cracks) {
+        const n = Math.max(1, Math.ceil(k * 1.6 * (line.length - 1)));
+        ctx.beginPath(); line.slice(0, n + 1).forEach(([x, y]) => ctx.lineTo(x, y)); ctx.stroke();
+      }
+    }
+  }
   for (const c of cups) drawCup(c);
   for (const r of hole.water) drawWaterSurface(r);
   for (const bz of hole.boosts) drawBoost(bz);
@@ -2486,6 +2696,7 @@ function draw() {
     p.needsUpdate = true;
   });
   drawTrolls(U);
+  drawChunks();
 
   // the item
   if (U.ballItem !== item) {
@@ -2497,6 +2708,7 @@ function draw() {
   if (state === 'sinking') { const c = realCup(); sinkAnim += 1 / 60; scale = Math.max(0, 1 - sinkAnim * 2.5); ball.x += (c.x - ball.x) * .2; ball.y += (c.y - ball.y) * .2; lift = -sinkAnim * 30; }
   if (T.anim && T.anim.type === 'trap') { scale = 1 - (T.anim.shrink || 0); lift = -T.anim.shrink * 20; }
   bs.visible = bsh.visible = !ball.gone && !ball.hidden && scale > 0;
+  if (lift < 0) bsh.visible = false; // it's below the ground
   if (bs.visible) {
     const inWater = item.floats && hole.water.some(r => inRect(ball.x, ball.y, r));
     const sc = item.r * 1.15 * scale, q = ball.squash || 0;
@@ -2588,6 +2800,8 @@ function drawMini() {
   mctx.fillStyle = course.theme === 'desert' ? '#3f9a4a' : course.theme === 'moon' ? '#8e8f96' : '#ff4f9a';
   for (const bm of hole.bumpers) { circle(bm[0], bm[1], bm[2], mctx); mctx.fill(); }
   for (const pl of hole.pulls) { mctx.fillStyle = 'rgba(30,0,60,.6)'; circle(pl[0], pl[1], pl[2] * .6, mctx); mctx.fill(); }
+  mctx.fillStyle = '#120a05';
+  for (const ch of chunks) if (ch.st === 'fall' || ch.st === 'gone') { mctx.beginPath(); ch.pts.forEach(([x, y]) => mctx.lineTo(x, y)); mctx.fill(); }
   for (const c of cups) {
     mctx.fillStyle = '#fff'; circle(c.x, c.y, 22, mctx); mctx.fill();
     mctx.fillStyle = '#000'; circle(c.x, c.y, 13, mctx); mctx.fill();
@@ -2610,6 +2824,7 @@ function frame(now) {
     for (let i = 0; i < n && state === 'play'; i++) step(h);
   } else if (state === 'troll' && T.anim) trollAnim(dt);
   trollFx(dt);
+  if (hole && (state === 'play' || state === 'troll' || state === 'sinking')) updateChunks(dt);
   for (const p of particles) {
     p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
     p.z += p.vz * dt; p.vz -= (p.rect ? 500 : 900) * dt;
