@@ -790,15 +790,12 @@ function penalty(kind) {
   ball.x = ball.last[0]; ball.y = ball.last[1];
   if (broken(ball.x, ball.y)) [ball.x, ball.y] = hole.start; // the spot you hit from fell away too
   ball.vx = ball.vy = 0; ball.spin = 0; ball.air = 0; ball.moving = false; ball.hopped = true;
-  checkGiveUp();
+  noMercy();
 }
 
-function checkGiveUp() {
-  if (strokes >= 12 && (state === 'play' || state === 'troll')) {
-    toast('Mercy rule. Even the course feels a little bad.', 2400);
-    T.anim = null;
-    finishHole(12);
-  }
+// there is no mercy rule: the hole doesn't end until it's in. The course just says so once.
+function noMercy() {
+  if (strokes >= 12 && !T.saidNoMercy) { T.saidNoMercy = true; toast('Mercy rule? Never heard of it. Keep going.', 2400); addRage(6); }
 }
 
 // ---------- Particles ----------
@@ -1020,8 +1017,8 @@ function step(dt) {
 
   if (!air && !onBoost && sp < 7) {
     ball.vx = ball.vy = 0; ball.moving = false; ball.stopT = 0; ball.spin = 0;
-    checkGiveUp();
     onStop();
+    noMercy();
   }
 }
 
@@ -1062,7 +1059,7 @@ function finishHole(s) {
   setTimeout(() => {
     if (holeIdx + 1 < course.holes.length) loadHole(holeIdx + 1);
     else endGame();
-  }, s >= 12 ? 1800 : 300);
+  }, 300);
 }
 
 function endGame() {
@@ -1328,7 +1325,7 @@ function trollAnim(dt) {
       strokes++; updateHud();
       toast(pick(LINES.trap), 2400); addRage(12); laugh();
       endAnim();
-      checkGiveUp();
+      noMercy();
     }
   }
 }
