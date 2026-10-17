@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wacky Rage Golf | A Free 3D Mini Golf Game by Anna Wang</title>
+  <meta name="description" content="Play Wacky Rage Golf, a free 3D mini golf game made by Anna Wang. Every hole is out to get you: shy cups, sneaky moles, a thieving eagle and a UFO.">
+  <meta name="author" content="Anna Wang">
+  <link rel="canonical" href="https://annawang.net/games/wacky-rage-golf/">
+  <meta name="theme-color" content="#fdfcf7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f2d27" media="(prefers-color-scheme: dark)">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Anna Wang">
+  <meta property="og:title" content="Wacky Rage Golf | A game by Anna Wang">
+  <meta property="og:description" content="Free 3D mini golf you can play in your browser, where every hole is trying to make you mad!">
+  <meta property="og:url" content="https://annawang.net/games/wacky-rage-golf/">
+  <meta property="og:image" content="https://annawang.net/games/wacky-rage-golf/thumbnail.jpg">
+  <meta property="og:image:alt" content="A mini golf hole in Wacky Rage Golf">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Wacky Rage Golf | A game by Anna Wang">
+  <meta name="twitter:description" content="Free 3D mini golf you can play in your browser, where every hole is trying to make you mad!">
+  <meta name="twitter:image" content="https://annawang.net/games/wacky-rage-golf/thumbnail.jpg">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    try {
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Wacky Rage Golf",
+    "url": "https://annawang.net/games/wacky-rage-golf/",
+    "image": "https://annawang.net/games/wacky-rage-golf/thumbnail.jpg",
+    "description": "A free 3D mini golf game where every hole is out to get you.",
+    "gamePlatform": "Web browser",
+    "applicationCategory": "Game",
+    "author": { "@type": "Person", "@id": "https://annawang.net/#anna", "name": "Anna Wang", "url": "https://annawang.net/" }
+  }
+  </script>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/" aria-label="Anna Wang, homepage">AW</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Switch between notebook and chalkboard theme" title="Switch theme">
+      <span class="icon-sun" aria-hidden="true">☀️</span><span class="icon-moon" aria-hidden="true">🌙</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="section game-page" aria-labelledby="game-title">
+      <a class="back" href="/#games">← All my games</a>
+      <h1 id="game-title"><span class="highlight">Wacky Rage Golf</span> ⛳</h1>
+      <p class="play-note">Drag on the course to pull back and aim, then let go to swing. Every hole has a nasty surprise waiting for you. Good luck! 😡</p>
+      <div class="game-frame">
+        <iframe src="/golf/" title="Wacky Rage Golf, a mini golf game by Anna Wang" allow="autoplay"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>made with ♥ by <a href="/">Anna Wang</a> · 2026</span>
+  </footer>
+
+  <script src="/script.js" defer></script>
+  <script>
+    // The golf game doesn't report its height like the arcade does, so measure it here
+    // (it's on this site, so we can look inside the frame) and fit the frame to it.
+    (() => {
+      const frame = document.querySelector(".game-frame iframe");
+      const fit = () => {
+        const d = frame.contentDocument, last = d && d.getElementById("item");
+        if (last) frame.style.height = Math.ceil(last.getBoundingClientRect().bottom + 16) + "px";
+      };
+      frame.addEventListener("load", () => {
+        fit();
+        new ResizeObserver(fit).observe(frame.contentDocument.body);
+      });
+      window.addEventListener("resize", fit);
+    })();
+  </script>
+</body>
+</html>

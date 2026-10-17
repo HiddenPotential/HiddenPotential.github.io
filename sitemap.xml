@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://annawang.net/</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-10-17</lastmod>
   </url>
   <url>
     <loc>https://annawang.net/games/coin-pusher/</loc>
@@ -11,6 +11,10 @@
   <url>
     <loc>https://annawang.net/games/claw-machine/</loc>
     <lastmod>2026-10-12</lastmod>
+  </url>
+  <url>
+    <loc>https://annawang.net/games/wacky-rage-golf/</loc>
+    <lastmod>2026-10-17</lastmod>
   </url>
   <url>
     <loc>https://annawang.net/apps/fluffipets/</loc>
