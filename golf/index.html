@@ -51,6 +51,18 @@
     box-shadow: 0 3px 0 #c9b98f;
   }
   #toast.show { opacity: 1; }
+  /* the course's own voice: a smug face and a speech bubble, top left */
+  #voice {
+    position: absolute; left: 12px; top: 58px; max-width: 40%; display: flex; align-items: flex-start; gap: 8px;
+    pointer-events: none; opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; z-index: 6;
+  }
+  #voice.show { opacity: 1; transform: none; }
+  #voiceFace { font-size: 30px; line-height: 1; background: #fdf6e3; border: 3px solid #2b2118; padding: 4px; flex: none; }
+  #voiceText {
+    position: relative; background: #fff; border: 3px solid #2b2118; padding: 7px 10px; font-size: 15px; line-height: 1.3;
+    box-shadow: 3px 3px 0 rgba(0,0,0,.25);
+  }
+  #voiceText::before { content: ''; position: absolute; left: -9px; top: 10px; border: 6px solid transparent; border-right-color: #2b2118; }
   #hint {
     position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
     background: rgba(25,35,25,.72); color: #fff; padding: 6px 14px; border-radius: 0;
@@ -189,6 +201,7 @@
   <div id="wrap">
     <canvas id="c" width="1000" height="640"></canvas>
     <div id="toast"></div>
+    <div id="voice"><span id="voiceFace">😏</span><span id="voiceText"></span></div>
     <div id="hint">Drag back to aim, let go to swing</div>
 
     <div class="screen show" id="titleScreen">
@@ -776,6 +789,7 @@ function toggleMusic() {
   musicOn = !musicOn; audio();
   $('musicBtn').classList.toggle('off', !musicOn);
   try { localStorage.setItem('wackyMusic', musicOn ? 'on' : 'off'); } catch (e) {}
+  if (state === 'play' || state === 'intro') say(musicOn ? 'musicOn' : 'musicOff', musicOn ? 'proud' : 'annoyed', true);
 }
 
 const sfx = {
@@ -977,7 +991,7 @@ $('musicBtn').classList.toggle('off', !musicOn);
 // the give-up button never lets you give up, and hops to a different spot each time
 $('quitBtn').onclick = e => {
   quitTries++;
-  toast(pick(LINES.noquit), 1600); laugh(); addRage(4);
+  toast(pick(LINES.noquit), 1600); laugh(); addRage(4); say('quit', 'laugh', true);
   const b = e.currentTarget, row = b.parentNode, others = [...row.children].filter(x => x !== b);
   row.insertBefore(b, pick(others));
 };
@@ -996,7 +1010,7 @@ function shoot({ ang, power }) {
   ball.air = 0;
   if (club.lob) { ball.airT = (.35 + .55 * power) * (course.lowGrav ? 1.5 : 1); ball.air = ball.airT; }
   ball.moving = true; ball.hopped = false; ball.stopT = 0; ball.minD = Infinity; ball.trolled = false;
-  T.gustThisShot = false; T.peelThisShot = false; T.mirrorOn = false;
+  T.gustThisShot = false; voiceShot(); T.peelThisShot = false; T.mirrorOn = false;
   if (T.peelOn && T.peelOn.used) T.peelOn = null;
   strokes++; updateHud();
   swing = { t: 0, ang, club, power };
@@ -1010,6 +1024,8 @@ function penalty(kind) {
   bump(kind === 'splash' ? theme().splash : kind === 'sinkhole' ? 'pull' : kind);
   strokes++; addRage(8);
   toast(pick(LINES[kind === 'splash' ? theme().splash : kind]));
+  const vk = kind === 'splash' ? theme().splash : kind === 'sinkhole' ? 'pull' : kind;
+  say(SNARK[vk] ? vk : 'troll', 'laugh', true);
   ball.x = ball.last[0]; ball.y = ball.last[1];
   if (broken(ball.x, ball.y)) [ball.x, ball.y] = hole.start; // the spot you hit from fell away too
   ball.vx = ball.vy = 0; ball.spin = 0; ball.air = 0; ball.moving = false; ball.hopped = true;
@@ -1069,7 +1085,7 @@ function bounce(nx, ny, vn, rvx, rvy, ux, uy) {
   // cap speed so the cheese can't go to space
   const s = Math.hypot(ball.vx, ball.vy);
   if (s > 1400) { ball.vx *= 1400 / s; ball.vy *= 1400 / s; }
-  if (impact > 60) sfx.wall(impact);
+  if (impact > 60) { sfx.wall(impact); ball.bounces = (ball.bounces || 0) + 1; }
   if (impact > 120) { ball.squash = Math.min(1, impact / 700); ring(ball.x - nx * item.r, ball.y - ny * item.r, 'rgba(255,255,255,.7)', 18 + impact / 40, .3, 2); }
   if (impact > 700) shake = Math.max(shake, 4);
   if (item === ITEMS.cheese && impact > 200) for (let i = 0; i < 4; i++) puff(ball.x, ball.y, '#ffd23d', 150);
@@ -1284,7 +1300,7 @@ function sink() {
   // ...unless something in the hole has other plans
   const thief = T.ufo > 0 ? 'ufo' : T.thief > 0 ? 'thief' : T.var > 0 ? 'var' : null;
   if (thief) { T[thief]--; setTimeout(() => { if (state === 'sinking') startAnim(thief); }, 1300); return; }
-  addRage(-10);
+  addRage(-10); voiceSink();
   setTimeout(() => finishHole(strokes), 1700);
 }
 
@@ -1316,9 +1332,97 @@ function endGame() {
   $('awards').innerHTML = '<h3>🏅 Awards</h3>' + awards(total, par);
   $('scoreTable').innerHTML = rows;
   show('endScreen');
+  setTimeout(() => say(d <= 0 ? 'endGood' : 'endBad', d <= 0 ? 'annoyed' : 'laugh', true), 600);
 }
 
 function floater(text, x, y, color = '#ffd23d') { floaters.push({ text, x, y, t: 1.3, color }); }
+
+// ---------- The course talks: a smug little voice with opinions ----------
+// It has its own speech bubble (bottom left), separate from the event toasts, and it doesn't
+// talk over itself: ordinary remarks wait a few seconds after the last one, important ones cut in.
+const SNARK = {
+  start:     ['Oh good, you again.', 'Welcome back. I have been practising.', 'Ready when you are. I am always ready.', 'Let us see how this goes. Badly, I hope.'],
+  startCalm: ['No surprises on this hole. Probably.', 'Nothing special here. Trust me.', 'This one is easy. That is what I always say.'],
+  idle:      ['Any day now.', 'I can wait. I am a golf course.', 'Take your time. I am not going anywhere. Literally.', 'Hello? Is anyone holding the club?'],
+  idle2:     ['I have grown three new weeds while you were thinking.', 'At this rate the grass needs mowing again.', 'Did you fall asleep? Was it my scenery?'],
+  power:     ['Easy, tiger.', 'Full power? Bold.', 'Whoa there, champ.', 'You know there are walls, right?'],
+  good:      ['Lucky.', 'Okay, that was… fine.', 'Beginner\'s luck. Clearly.', 'Hmph. Not bad. For you.', 'I let you have that one.'],
+  pinball:   ['Are you playing pinball?', 'Ding ding ding! Oh wait, this is golf.', 'The walls are not the target. The cup is.', 'Bounce, bounce, bounce. Very stylish.'],
+  splash:    ['Splash! I love it when that happens.', 'It cannot swim. I checked.', 'The fish say thank you.'],
+  quicksand: ['Glug. The desert says thanks.', 'Quicksand: one. You: zero.'],
+  void:      ['Into the void! Wave goodbye.', 'Space claims another ball.'],
+  pull:      ['Spaghetti! My favourite.', 'The black hole was hungry. I did warn you. Did I? Hmm.'],
+  crumble:   ['Oops. My floor. My bad. (Not really.)', 'Structural integrity was never my strong point.'],
+  troll:     ['Did you really think I would let you have that?', 'Gotcha.', 'Ha! Classic me.', 'That was my favourite part.'],
+  ace:       ['Ugh. Fine. A hole in one. Beginner\'s luck.', 'A hole in one?! I demand a rematch.'],
+  under:     ['Whatever. The cup was big today.', 'Under par? I am telling the groundskeeper.', 'Fine. You win this one. This ONE.'],
+  par:       ['Par. How… average.', 'Par. The beige of golf scores.', 'Exactly par. Thrilling.'],
+  bogey:     ['Bogey. I have seen worse. Not much worse.', 'One over. So close to being good.'],
+  worse:     ['Finally. I was about to start charging rent.', 'It went in! Eventually! Like a sloth finishing a marathon.', 'I was beginning to think you lived here.'],
+  musicOff:  ['Rude. I composed that.', 'Fine. Enjoy the silence. I will be humming.'],
+  musicOn:   ['Finally, some taste.', 'The music is back. So is my good mood.'],
+  quit:      ['Quitting? On ME? Absolutely not.', 'There is no giving up on this course. I checked the rules. I wrote the rules.', 'Nice try.'],
+  endGood:   ['You beat me. I am not crying. That is sprinkler water.', 'Fine. You win. Come back so I can win next time.'],
+  endBad:    ['Come back anytime. I will be here. Waiting.', 'Same time tomorrow? I will polish the black holes.', 'That was fun! For me.'],
+};
+const MOODS = { smug: '😏', laugh: '😂', annoyed: '😒', bored: '😴', shocked: '😮', proud: '😌' };
+const EXTRA_NAMES = {
+  gust: 'some wind', crow: 'an eagle', relocate: 'a cup that moves', thief: 'a hand in the cup', mole: 'a hamster', lid: 'a lid',
+  var: 'VAR', ufo: 'a UFO', dog: 'a dog', mower: 'a mower', peel: 'a banana peel', raccoon: 'a raccoon', blackout: 'a power cut',
+  mirror: 'mirror mode', tornado: 'a tornado', boulder: 'a boulder', crash: 'absolutely nothing suspicious', inflation: 'the economy',
+  weed: 'some weeds', flytrap: 'a hungry plant',
+};
+let lastVoice = -99, voiceTimer = 0, voice = { idle: 0, idleSaid: 0, fullT: 0 };
+function say(key, mood = 'smug', force = false, text = null) {
+  if (!force && time - lastVoice < 4) return;
+  lastVoice = time;
+  const line = text || pick(SNARK[key]);
+  $('voiceFace').textContent = MOODS[mood] || MOODS.smug;
+  $('voiceText').textContent = line;
+  const el = $('voice'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(voiceTimer); voiceTimer = setTimeout(() => el.classList.remove('show'), 2600 + line.length * 35);
+}
+// the start of each hole: brag about whatever is waiting on it
+function sayHoleStart() {
+  const bits = [];
+  if (T.cond) bits.push(T.cond.text.split(':')[0].toLowerCase());
+  const extras = (T.extras || []).map(k => EXTRA_NAMES[k]).filter(Boolean);
+  if (extras.length) bits.push(extras.length > 1 ? extras.slice(0, -1).join(', ') + ' and ' + extras[extras.length - 1] : extras[0]);
+  if (!bits.length) return say('startCalm', 'smug', true);
+  const opener = pick(['I added', 'Today I have', 'Special treat:', 'Oh, and I brought']);
+  say(null, 'smug', true, `${opener} ${bits.join(', plus ')}. You are welcome.`);
+}
+// called every frame: notice you dawdling or winding up a huge swing
+function voiceTick(dt) {
+  if (state !== 'play') { voice.idle = 0; return; }
+  if (aim) {
+    voice.idle = 0;
+    const { power } = aimVec();
+    voice.fullT = power > .97 ? voice.fullT + dt : 0;
+    if (voice.fullT > .5 && !voice.saidPower) { voice.saidPower = true; say('power', 'shocked'); }
+    return;
+  }
+  if (ball.moving) { voice.idle = 0; return; }
+  voice.idle += dt;
+  if (voice.idle > 10 && voice.idleSaid === 0) { voice.idleSaid = 1; say('idle', 'bored', true); }
+  if (voice.idle > 25 && voice.idleSaid === 1) { voice.idleSaid = 2; say('idle2', 'bored', true); }
+}
+// when a shot is struck
+function voiceShot() { voice.idle = 0; voice.idleSaid = 0; voice.saidPower = false; voice.fullT = 0; ball.bounces = 0; }
+// when the ball stops (and nothing more dramatic happened)
+function voiceStop(d) {
+  if ((ball.bounces || 0) >= 4) { say('pinball', 'laugh'); return true; }
+  if (d < 50 && !ball.trolled) { say('good', 'annoyed'); return true; }
+  return false;
+}
+function voiceSink() {
+  const d = strokes - parOf(holeIdx);
+  if (strokes === 1) say('ace', 'shocked', true);
+  else if (d < 0) say('under', 'annoyed', true);
+  else if (d === 0) say('par', 'smug', true);
+  else if (d === 1) say('bogey', 'smug', true);
+  else say('worse', 'laugh', true);
+}
 
 // ---------- Trolls: the course is out to get you ----------
 // Every troll has a limit, so every hole can still be finished.
@@ -1506,7 +1610,9 @@ function onStop() {
   if (T.inflation > 0 && strokes >= parOf(holeIdx) - 1 && Math.random() < .6) { T.inflation--; if (inflate()) return; }
   if (nextShotTrolls(d)) return;
   if (ball.minD < 30 && d > 40 && !ball.trolled) { toast(pick(LINES.nearmiss), 1700); sfx.groan(); addRage(7); return; }
-  if (strokes > 0 && Math.random() < .35) { toast(pick(LINES[rage >= 60 ? 'meantaunt' : 'taunt']), 1600); addRage(3); }
+  if (voiceStop(d)) return;
+  // the course itself does the taunting now
+  if (strokes > 0 && Math.random() < .35) { say(null, rage >= 60 ? 'laugh' : 'smug', false, pick(LINES[rage >= 60 ? 'meantaunt' : 'taunt'])); addRage(3); }
 }
 
 function relocateCup(c) {
@@ -1522,6 +1628,7 @@ function relocateCup(c) {
 // a scripted troll scene: the game waits while it plays out
 function startAnim(type, data = {}) {
   T.anim = { type, t: 0, ...data };
+  if (['thief', 'ufo', 'var', 'crow', 'dog', 'flytrap', 'tornado', 'teeter', 'trap', 'raccoon'].includes(type)) setTimeout(() => say('troll', 'laugh'), 1100);
   bump(type);
   state = 'troll'; aim = null;
   const A = T.anim;
@@ -4458,7 +4565,7 @@ function frame(now) {
     trollTick(dt);
     for (let i = 0; i < n && state === 'play'; i++) step(h);
   } else if (state === 'troll' && T.anim) trollAnim(dt);
-  trollFx(dt);
+  trollFx(dt); voiceTick(dt);
   if (hole && (state === 'play' || state === 'troll' || state === 'sinking')) updateChunks(dt);
   for (const p of particles) {
     p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
@@ -4485,7 +4592,7 @@ function frame(now) {
 
 // ---------- Start ----------
 $('startBtn').onclick = () => { audio(); showMap(); };
-$('introBtn').onclick = () => { show(null); state = 'play'; };
+$('introBtn').onclick = () => { show(null); state = 'play'; setTimeout(() => { if (state === 'play') sayHoleStart(); }, 500); };
 $('againBtn').onclick = () => startGame();
 $('mapBtn2').onclick = showMap;
 $('menuBtn').onclick = showMap;
