@@ -200,6 +200,7 @@
         <p id="introWhat"></p>
         <p id="introDesc"></p>
         <p class="small" id="introTip"></p>
+        <p class="small" id="introCond"></p>
         <button class="btn" id="introBtn">Let's go</button>
       </div>
     </div>
@@ -630,6 +631,9 @@ function loadHole(i) {
   $('introWhat').innerHTML = `Today you'll be hitting a <b>${item.name}</b>.`;
   $('introDesc').textContent = item.desc;
   $('introTip').textContent = '💡 ' + hole.tip;
+  // it only hints at the extra trolls, and it doesn't always tell the truth
+  const hint = Math.random() < (T.extras.length ? .75 : .4) ? '🎲 Something extra is hiding on this hole.' : '🎲 Nothing extra on this hole. Probably.';
+  $('introCond').textContent = (T.cond ? `${T.cond.emoji} Today: ${T.cond.text}` : '☀️ Today: normal conditions. Suspicious.') + ' ' + hint;
   show('introScreen'); state = 'intro';
 }
 
@@ -683,7 +687,7 @@ const fmtPar = d => d === 0 ? 'E' : (d > 0 ? '+' + d : '' + d);
 function updateHud() {
   $('hHole').textContent = holeIdx + 1;
   $('hCount').textContent = course.holes.length;
-  $('hName').textContent = hole.name;
+  $('hName').textContent = hole.name + (T.cond ? ' ' + T.cond.emoji : '');
   $('hPar').textContent = hole.par;
   $('hStrokes').textContent = strokes;
   $('hTotal').textContent = fmtPar(totalVsPar());
@@ -768,6 +772,9 @@ $('quitBtn').onclick = e => {
 function shoot({ ang, power }) {
   const club = CLUBS[clubIdx];
   if (club.wobble) ang += (Math.random() * 2 - 1) * club.wobble;
+  const cond = T.cond || {};
+  if (cond.wobble) ang += (Math.random() * 2 - 1) * cond.wobble;
+  if (cond.dice) { const k = .7 + Math.random() * .6; power *= k; floater(`🎲 ${Math.round(k * 100)}%`, ball.x, ball.y, k < 1 ? '#ff6b5e' : '#7dff8a'); }
   const sp = MAX_SPEED * power * club.power * item.power;
   ball.last = [ball.x, ball.y];
   ball.vx = Math.cos(ang) * sp; ball.vy = Math.sin(ang) * sp;
@@ -837,7 +844,8 @@ function bounce(nx, ny, vn, rvx, rvy, ux, uy) {
   const impact = -vn;
   if (item.fragile && impact > 470 && !ball.air) { sfx.crack(); for (let i = 0; i < 20; i++) puff(ball.x, ball.y, i % 2 ? '#ffd23d' : '#fff', 200); penalty('crack'); return; }
   // super-bouncy items only gain energy on gentle hits, so they can't ping-pong forever
-  const e = item.bounce > 1 && impact > 450 ? .8 : item.bounce;
+  let e = item.bounce > 1 && impact > 450 ? .8 : item.bounce;
+  if (T.cond && T.cond.bounce) e = Math.min(.98, e * T.cond.bounce);
   // bounce back off the wall, and lose a little of the speed along it to friction
   const tx = rvx - vn * nx, ty = rvy - vn * ny, grip = .93;
   ball.vx = tx * grip - e * vn * nx + ux;
@@ -943,10 +951,17 @@ function step(dt) {
   const sNow = Math.hypot(ball.vx, ball.vy);
   // a little drag plus steady rolling resistance: a putt keeps its pace, then dies smoothly
   // instead of creeping along forever (things weigh less on the moon, so they roll further)
-  const roll = air ? 0 : (item.roll || 45) * (course.lowGrav ? .65 : 1);
+  const roll = air ? 0 : (item.roll || 45) * (course.lowGrav ? .65 : 1) * ((T.cond && T.cond.roll) || 1);
   const f = Math.pow(damp, dt * 60) * (sNow > 0 ? Math.max(0, 1 - roll * dt / sNow) : 1);
   ball.vx *= f; ball.vy *= f;
 
+  if (T.cond && T.cond.breeze && !air) { ball.vx += Math.cos(T.breezeA) * 60 * dt; ball.vy += Math.sin(T.breezeA) * 60 * dt; }
+  if (T.cond && T.cond.hiccups && !air && sNow > 60 && Math.random() < .6 * dt) {
+    // hic! a little hop that knocks it slightly off line
+    const a = (Math.random() - .5) * .8, c = Math.cos(a), s = Math.sin(a);
+    [ball.vx, ball.vy] = [ball.vx * c - ball.vy * s, ball.vx * s + ball.vy * c];
+    ball.air = ball.airT = .22; tone(700, .08, 'square', .06, 1100); floater('hic!', ball.x, ball.y, '#ffffff');
+  }
   ball.x += ball.vx * dt; ball.y += ball.vy * dt;
   ball.rot += (Math.hypot(ball.vx, ball.vy) / item.r) * dt * (ball.vx >= 0 ? 1 : -1) * .5;
 
@@ -1098,16 +1113,75 @@ function addRage(n) {
 }
 function laugh() { [392, 370, 349, 330].forEach((f, i) => tone(f, i === 3 ? .7 : .22, 'triangle', .14, i === 3 ? 300 : 0, i * .24)); }
 
+// ----- surprises: every time a hole loads it rolls fresh extra trolls and a condition, so no two rounds play the same -----
+const CONDITIONS = [
+  { emoji: '🧊', text: 'Icy green: it slides and slides.', roll: .35 },
+  { emoji: '🍯', text: 'Sticky green: you will need to hit it harder.', roll: 2.2 },
+  { emoji: '🏀', text: 'Bouncy walls: they hit back.', bounce: 1.4 },
+  { emoji: '🫨', text: 'Shaky hands: your aim wobbles a bit.', wobble: .14 },
+  { emoji: '🎲', text: 'Random power: every swing is somewhere from 70% to 130%.', dice: true },
+  { emoji: '🌬️', text: 'Steady breeze: everything drifts.', breeze: true },
+  { emoji: '😵', text: 'Hiccups: the ball hops on its own sometimes.', hiccups: true },
+];
+// [troll, how likely it is to be picked]
+const EXTRAS = [['gust', 3], ['crow', 2], ['relocate', 2], ['thief', 2], ['mole', 2], ['lid', 2], ['var', 2], ['ufo', 1]];
+// is there a straight, open path from one point to another (no walls, water, bumpers or black holes)?
+function clearLine(ax, ay, bx, by) {
+  const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 10);
+  for (let i = 1; i < n; i++) {
+    const x = ax + (bx - ax) * i / n, y = ay + (by - ay) * i / n;
+    if ([...hole.walls, ...hole.water].some(r => rectDist(x, y, r) < 16)) return false;
+    if (hole.bumpers.some(bm => Math.hypot(x - bm[0], y - bm[1]) < bm[2] + 16)) return false;
+    if (hole.pulls.some(pl => Math.hypot(x - pl[0], y - pl[1]) < pl[2])) return false;
+  }
+  return true;
+}
+// a random open spot on the field: not in a wall or hazard, away from the tee and the cups,
+// and with a clear shot to `to`, so the trolls stay mean but every spot can still be played
+function freeSpot(cupGap, to) {
+  for (let i = 0; i < 300; i++) {
+    const x = B + 50 + Math.random() * (W - 2 * B - 100), y = B + 50 + Math.random() * (H - 2 * B - 100);
+    if ([...hole.walls, ...hole.water, ...hole.sand, ...hole.boosts].some(r => rectDist(x, y, r) < 40)) continue;
+    if (hole.movers.some(m => rectDist(x, y, [Math.min(m[0], m[0] + m[4]), Math.min(m[1], m[1] + m[5]), m[2] + Math.abs(m[4]), m[3] + Math.abs(m[5])]) < 40)) continue;
+    if (hole.bumpers.some(bm => Math.hypot(x - bm[0], y - bm[1]) < bm[2] + 40)) continue;
+    if ([...hole.mills, ...hole.pulls].some(m => Math.hypot(x - m[0], y - m[1]) < m[2] + 40)) continue;
+    if (Math.hypot(x - hole.start[0], y - hole.start[1]) < 150) continue;
+    if (cups.some(c => Math.hypot(x - c.x, y - c.y) < cupGap)) continue;
+    if (to && !clearLine(x, y, to[0], to[1])) continue;
+    return [Math.round(x), Math.round(y)];
+  }
+  return null;
+}
+function rollSurprises(tr) {
+  const extra = {}, n = Math.random() < .15 ? 0 : Math.random() < .7 ? 1 : 2;
+  let pool = EXTRAS.filter(([k]) => !(k === 'lid' ? tr.lid : k === 'mole' ? tr.mole : k === 'relocate' ? (tr.relocate || []).length : tr[k]));
+  for (let i = 0; i < n && pool.length; i++) {
+    let r = Math.random() * pool.reduce((a, [, w]) => a + w, 0), k = pool[0][0];
+    for (const [key, w] of pool) { r -= w; if (r <= 0) { k = key; break; } }
+    pool = pool.filter(([key]) => key !== k);
+    if (k === 'crow') {
+      // the eagle likes to drop things in sand and water, or failing that somewhere far from the cup
+      const drops = [...hole.sand, ...hole.water].map(r => [r[0] + r[2] / 2, r[1] + r[3] / 2]);
+      while (drops.length < 2) { const p = freeSpot(260, hole.cup); if (!p) break; drops.push(p); }
+      if (drops.length) { extra.crow = 1; extra.crowDrops = [...(tr.crowDrops || []), ...drops]; }
+    } else if (k === 'relocate') { const p = freeSpot(220, hole.cup); if (p) extra.relocate = [p]; }
+    else extra[k] = k === 'lid' || k === 'mole' ? true : 1;
+  }
+  return extra;
+}
+
 function setupTrolls() {
-  const tr = hole.trolls || {};
   cups = [{ x: hole.cup[0], y: hole.cup[1], real: true }, ...(hole.fakes || []).map(([x, y]) => ({ x, y, real: false }))];
   if (cups.length > 1) shuffleCups();
+  const base = hole.trolls || {}, extra = rollSurprises(base), tr = { ...base, ...extra };
   T = {
     thief: tr.thief || 0, ufo: tr.ufo || 0, var: tr.var || 0, gust: tr.gust || 0, crow: tr.crow || 0, relocate: [...(tr.relocate || [])],
     flee: tr.flee || 0, fleeing: false, lidOn: !!tr.lid, lid: 0, lidWant: 0, lidRest: 0, lidSlams: 3, mole: !!tr.mole, moleUp: 0,
     gustThisShot: false, anim: null, fx: {},
     // on every hole: the ball teeters on the lip once, and the green slopes back toward you once
     teeter: 1, slope: 1,
+    tr, extras: Object.keys(extra).filter(k => k !== 'crowDrops'),
+    cond: Math.random() < .75 ? pick(CONDITIONS) : null, breezeA: Math.random() * TAU,
   };
 }
 function shuffleCups() { const k = Math.floor(Math.random() * cups.length); cups.forEach((c, i) => c.real = i === k); }
@@ -1119,7 +1193,7 @@ function trollTick(dt) {
   const c = realCup(), dx = c.x - ball.x, dy = c.y - ball.y, d = Math.hypot(dx, dy), sp = Math.hypot(ball.vx, ball.vy);
   if (T.flee > 0 && ball.moving && d < 190 && !(ball.air > 0)) {
     if (!T.fleeing) { T.fleeing = true; toast('🏃 The cup is shy!', 1300); addRage(6); }
-    const z = hole.trolls.fleeZone, k = 175 * dt / (d || 1);
+    const z = T.tr.fleeZone, k = 175 * dt / (d || 1);
     c.x = clamp(c.x + dx * k, z[0], z[0] + z[2]); c.y = clamp(c.y + dy * k, z[1], z[1] + z[3]);
     T.flee -= dt;
     if (T.flee <= 0) toast('😮‍💨 The cup is exhausted. It stops running.', 1800);
@@ -1217,7 +1291,7 @@ function startAnim(type, data = {}) {
   if (type === 'thief') ball.hidden = true;
   if (type === 'var') { ball.hidden = true; toast('📺 VAR is reviewing the putt…', 2000); tone(880, .12, 'square', .08); tone(880, .12, 'square', .08, 0, .3); }
   if (type === 'crow') {
-    const drops = hole.trolls.crowDrops;
+    const drops = T.tr.crowDrops;
     A.drop = drops[Math.floor(Math.random() * drops.length)];
     A.fx = ball.x < W / 2 ? W + 150 : -150; A.fy = ball.y - 120;
     tone(900, .15, 'sawtooth', .08, 1300); tone(1000, .15, 'sawtooth', .08, 1400, .2);
@@ -1332,6 +1406,12 @@ function trollAnim(dt) {
 
 // effects that linger after a troll scene ends
 function trollFx(dt) {
+  // a steady breeze shows as little streaks drifting across the course
+  if (T.cond && T.cond.breeze && (state === 'play' || state === 'troll') && Math.random() < dt * 14) {
+    const a = T.breezeA, sp = 160 + Math.random() * 80;
+    particles.push({ x: B + Math.random() * (W - 2 * B), y: B + Math.random() * (H - 2 * B), z: 20 + Math.random() * 40,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: 220, life: .9, max: .9, color: '#ffffff', size: 3 });
+  }
   for (const k of ['hand']) if (T.fx[k] > 0) T.fx[k] -= dt;
   for (const k of ['gust', 'ufo', 'crow']) if (T.fx[k]) { T.fx[k].t -= dt; if (T.fx[k].t <= 0) T.fx[k] = null; }
 }
@@ -1377,7 +1457,7 @@ function makeChunk(x, y, size) {
 // room for this chunk? keep a little gap to walls and hazards, a bigger one to other pits, and stay away from the tee and cups
 // (cupGap: how far its edge stays from a cup; the ones that open under your item are allowed a bit closer)
 function chunkFits(ch, cupGap = 75) {
-  const { x, y, rad } = ch, gap = rad + 14, tr = hole.trolls || {};
+  const { x, y, rad } = ch, gap = rad + 14, tr = T.tr || {};
   if (x < B + gap || x > W - B - gap || y < B + gap || y > H - B - gap) return false;
   for (const r of [...hole.walls, ...hole.water, ...hole.sand, ...hole.boosts]) if (rectDist(x, y, r) < gap) return false;
   for (const m of hole.movers) {
