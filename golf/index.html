@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<meta name="description" content="Three 18-hole courses of 3D mini golf where the course is out to get you.">
+<meta name="description" content="Three 18-hole courses of 3D mini golf, plus three holiday courses, where the course is out to get you.">
 <style>
   :root {
     --bg: #1d2b1f;
@@ -87,6 +87,9 @@
   .course.grass { background: linear-gradient(160deg, #c9f0b8, #8fd17d); }
   .course.desert { background: linear-gradient(160deg, #ffe3b0, #f0b56a); }
   .course.moon { background: linear-gradient(160deg, #3a3f5c, #15172a); color: #eef0ff; }
+  .course.halloween { background: linear-gradient(160deg, #5b3a78, #1f1530); color: #ffe2b8; }
+  .course.christmas { background: linear-gradient(160deg, #f4fbff, #b9dcf2); }
+  .course.easter { background: linear-gradient(160deg, #ffe0f0, #c9f0d0); }
   .course .e { font-size: 46px; line-height: 1.1; }
   .course b { font-size: 18px; }
   .course .d { font-size: 12.5px; line-height: 1.3; opacity: .85; }
@@ -208,7 +211,7 @@
       <div class="card">
         <div class="big-emoji">⛳😡✋</div>
         <h1>Wacky Rage Golf</h1>
-        <p>Three courses of pixel 3D mini golf. Every single hole is out to get you.</p>
+        <p>Six courses of pixel 3D mini golf, holidays included. Every single hole is out to get you.</p>
         <p class="small">Drag anywhere to pull back and aim, release to swing.<br>Pick a club with the buttons below or keys 1–4. C switches the camera, P the pixel look.</p>
         <button class="btn" id="startBtn">Tee off (if you dare)</button>
         <p class="small" id="bestLine"></p>
@@ -222,7 +225,7 @@
     <div class="screen" id="mapScreen">
       <div class="card wide">
         <h2>🗺️ Pick a course</h2>
-        <p class="small">Three courses, 18 holes each. All of them hate you.</p>
+        <p class="small">Three 18-hole courses and three 9-hole holiday specials. All of them hate you.</p>
         <div class="courses" id="courseList"></div>
       </div>
     </div>
@@ -551,7 +554,118 @@ const MOON = [
     tip: 'The last hole in the universe. They are watching.' },
 ];
 
-// themes: how a course looks, and lowGrav makes things float longer and roll further
+// ----- holiday courses: they play like the meadow, but dress up -----
+const SPOOKY = [
+  { name: 'Trick or Treat', item: 'golf', par: 2, start: [150, 320], cup: [620, 320], fakes: [[620, 170], [620, 470]],
+    tip: 'Three cups. Two are tricks. One is a treat.' },
+  { name: 'Graveyard Shift', item: 'golf', par: 3, start: [120, 320], cup: [860, 320],
+    bumpers: [[350, 200, 24], [350, 440, 24], [560, 320, 26], [740, 200, 24], [740, 440, 24]],
+    trolls: { thief: 1 },
+    tip: 'Something down in the cup wants your ball. Something cold.' },
+  { name: "Witch's Swamp", item: 'golf', par: 3, start: [120, 320], cup: [860, 320],
+    water: [[380, 20, 240, 250], [380, 370, 240, 250]],
+    trolls: { gust: 1 },
+    tip: 'A narrow path through the swamp. The witch is breathing on it.' },
+  { name: 'Haunted Hallway', item: 'golf', par: 4, start: [120, 540], cup: [880, 540],
+    walls: [[250, 20, 24, 440], [500, 180, 24, 440], [750, 20, 24, 440]],
+    trolls: { blackout: 2 },
+    tip: 'The lights in this hallway keep going out. Totally normal.' },
+  { name: 'Bat Cave', item: 'golf', par: 3, start: [120, 320], cup: [850, 320],
+    sand: [[400, 40, 200, 140], [400, 460, 200, 140]],
+    trolls: { crow: 2, crowDrops: [[500, 110], [500, 530]] },
+    tip: 'Things up there like shiny little balls.' },
+  { name: 'Monster Mash', item: 'golf', par: 3, start: [120, 320], cup: [840, 320],
+    mills: [[480, 320, 110, 2.2]],
+    trolls: { mole: true },
+    tip: 'Something lives under the cup. It does the mash.' },
+  { name: 'Ghost Cup', item: 'golf', par: 4, start: [120, 520], cup: [820, 150],
+    walls: [[420, 200, 24, 420]],
+    trolls: { relocate: [[820, 500], [600, 120]] },
+    tip: 'The cup is a ghost. It does not stay put.' },
+  { name: 'Pumpkin Patch', item: 'golf', par: 3, start: [120, 320], cup: [880, 320],
+    bumpers: [[300, 160, 24], [300, 480, 24], [450, 320, 24], [600, 170, 24], [600, 470, 24], [750, 320, 24]],
+    trolls: { boulder: 1 },
+    tip: 'Pumpkins everywhere. One of them is rolling.' },
+  { name: 'Midnight', item: 'golf', par: 5, start: [100, 540], cup: [880, 120],
+    water: [[300, 390, 250, 230]], walls: [[640, 280, 340, 26]], bumpers: [[480, 200, 24]],
+    trolls: { ufo: 1, blackout: 1 },
+    tip: 'The clock strikes twelve. Something is landing.' },
+];
+const WINTER = [
+  { name: 'Ice Rink', item: 'golf', par: 2, start: [150, 320], cup: [700, 320],
+    walls: [[300, 200, 400, 24], [300, 416, 400, 24]],
+    tip: 'It is ice. Hit it gently. Gentler. GENTLER.' },
+  { name: 'Present Pile', item: 'golf', par: 3, start: [120, 320], cup: [870, 320],
+    bumpers: [[380, 200, 26], [380, 440, 26], [560, 320, 28], [720, 190, 26], [720, 450, 26]],
+    trolls: { thief: 1 },
+    tip: 'Unwrap a hole-in-one. Someone might regift it.' },
+  { name: 'Frozen Pond', item: 'golf', par: 3, start: [120, 320], cup: [860, 320],
+    water: [[350, 120, 320, 400]], ramps: [[260, 320, 80, 70, 0]],
+    trolls: { gust: 1 },
+    tip: 'The pond is frozen. Mostly. Take the ramp, or the long way round.' },
+  { name: 'Chimney Drop', item: 'golf', par: 3, start: [120, 320], cup: [820, 320],
+    walls: [[450, 20, 30, 280], [450, 340, 30, 280]],
+    trolls: { lid: true },
+    tip: 'Down the chimney! The flue slams shut on slow putts.' },
+  { name: "Santa's Test Flight", item: 'golf', par: 4, start: [120, 520], cup: [840, 140],
+    walls: [[20, 300, 600, 24]],
+    trolls: { ufo: 1 },
+    tip: 'Something is doing a test flight tonight. It collects things.' },
+  { name: 'Candy Cane Lane', item: 'golf', par: 3, start: [120, 320], cup: [870, 320],
+    movers: [[350, 30, 30, 200, 0, 380, 2.6, 0], [620, 410, 30, 200, 0, -380, 2.6, 0]],
+    tip: 'The candy canes are on the move. Time it.' },
+  { name: 'Snowball Fight', item: 'golf', par: 3, start: [120, 320], cup: [860, 320],
+    bumpers: [[500, 200, 26], [500, 440, 26]],
+    trolls: { boulder: 1, gust: 1 },
+    tip: 'Incoming snowball!' },
+  { name: "Elves' Workshop", item: 'golf', par: 4, start: [120, 320], cup: [880, 320],
+    mills: [[350, 320, 95, 1.6], [650, 320, 95, -1.6]],
+    trolls: { var: 1 },
+    tip: 'The toy machines never stop. The elves review every putt.' },
+  { name: 'Silent Night', item: 'golf', par: 5, start: [100, 540], cup: [880, 120],
+    water: [[300, 20, 200, 260], [560, 360, 200, 260]], sand: [[780, 230, 120, 100]], bumpers: [[420, 450, 24], [650, 180, 24]],
+    trolls: { blackout: 1, crow: 1, crowDrops: [[840, 280], [400, 150]] },
+    tip: 'All is calm. All is bright. For now.' },
+];
+const SPRING = [
+  { name: 'Bunny Slope', item: 'golf', par: 2, start: [150, 320], cup: [600, 320],
+    trolls: { flee: 1.6, fleeZone: [480, 120, 400, 400] },
+    tip: 'The cup hops away. It is a bunny now.' },
+  { name: 'Hidden Eggs', item: 'golf', par: 3, start: [120, 320], cup: [850, 320], fakes: [[850, 150], [850, 490]],
+    bumpers: [[520, 320, 30]],
+    tip: 'Three cups hidden in the grass. Only one has the golden egg.' },
+  { name: 'Tulip Fields', item: 'golf', par: 3, start: [120, 320], cup: [870, 320],
+    sand: [[300, 40, 160, 200], [300, 400, 160, 200], [600, 220, 160, 200]],
+    trolls: { weed: 2 },
+    tip: 'Fresh flowers sprout wherever you aim.' },
+  { name: 'Carrot Patch', item: 'golf', par: 3, start: [120, 320], cup: [860, 320],
+    sand: [[420, 40, 120, 120], [420, 480, 120, 120]],
+    trolls: { mower: 2 },
+    tip: 'The gardener is mowing. Mind the carrots.' },
+  { name: 'Spring Showers', item: 'golf', par: 3, start: [100, 320], cup: [860, 320],
+    water: [[300, 200, 400, 240]], ramps: [[220, 320, 80, 70, 0]],
+    trolls: { gust: 1 },
+    tip: 'April showers made a pond. Hop over it.' },
+  { name: 'Rabbit Hole', item: 'golf', par: 3, start: [120, 320], cup: [820, 320],
+    mills: [[470, 320, 95, 1.8]],
+    trolls: { mole: true },
+    tip: 'A bunny lives in the cup. Putt while it is out.' },
+  { name: 'Basket Weave', item: 'golf', par: 4, start: [120, 540], cup: [880, 100],
+    walls: [[260, 20, 24, 440], [480, 180, 24, 440], [700, 20, 24, 440]],
+    trolls: { dog: 1 },
+    tip: 'Weave through the basket. There is also a dog.' },
+  { name: 'Flower Power', item: 'golf', par: 3, start: [120, 320], cup: [870, 320],
+    bumpers: [[450, 200, 24], [450, 440, 24], [680, 320, 24]],
+    trolls: { flytrap: 1, peel: 1 },
+    tip: 'Not every flower is friendly.' },
+  { name: 'The Golden Egg', item: 'golf', par: 5, start: [100, 540], cup: [880, 120],
+    water: [[300, 390, 250, 230]], walls: [[640, 280, 340, 26]], bumpers: [[480, 200, 24], [780, 420, 24]],
+    trolls: { thief: 1, gust: 1 },
+    tip: 'The golden egg is in the last cup. So is a hand.' },
+];
+
+// themes: how a course looks, and lowGrav makes things float longer and roll further.
+// A holiday course plays like its theme but wears a skin: its own colours, scenery, bumpers and tune.
 const COURSES = [
   { key: 'meadow', name: 'Meadow Links', emoji: '🌳', theme: 'grass', holes: HOLES,
     blurb: 'Green grass, ponds, and a hand that lives in the cup.' },
@@ -559,6 +673,12 @@ const COURSES = [
     blurb: 'Quicksand, cactus bumpers, camels and vultures.' },
   { key: 'moon', name: 'Moon Base', emoji: '🌙', theme: 'moon', holes: MOON, lowGrav: true,
     blurb: 'Low gravity, black holes, and the UFO is home.' },
+  { key: 'spooky', name: 'Spooky Hollow', emoji: '🎃', theme: 'grass', skin: 'halloween', holes: SPOOKY,
+    blurb: 'Halloween night: gravestones, bats, and a haunted cup.' },
+  { key: 'winter', name: 'Frosty Village', emoji: '🎄', theme: 'grass', skin: 'christmas', holes: WINTER, ice: true,
+    blurb: 'Christmas on ice: it slides and slides. Presents bite back.' },
+  { key: 'spring', name: 'Bunny Meadow', emoji: '🐰', theme: 'grass', skin: 'easter', holes: SPRING,
+    blurb: 'An Easter egg hunt where the cup hops away.' },
 ];
 
 // ---------- More things to hit ----------
@@ -698,6 +818,21 @@ const TUNES = {
              'F4 . . . C5 . . . A4 . . . G4 . . .', 'E4 . . . G#4 . . . B4 . . . E5 . . .'],
     bass: ['A2', 'C3', 'F2', 'E2'], kick: [0], snare: [8], hat: [4, 12] },
 };
+// the holiday courses get their own loops (Jingle Bells is centuries out of copyright)
+Object.assign(TUNES, {
+  spooky: { bpm: 104, lead: 'square', vol: .04, echo: true,
+    melody: ['E5 . . G5 . . F#5 . . D#5 . . E5 . . .', 'B4 . . C5 . . B4 . A#4 . B4 . . . . .',
+             'E5 . . G5 . . A5 . . B5 . . C6 . B5 .', 'A#5 . A5 . G#5 . G5 . F#5 . . . E5 . . .'],
+    bass: ['E2', 'E2', 'C2', 'B1'], kick: [0, 8], snare: [12], hat: [4, 10, 14] },
+  winter: { bpm: 126, lead: 'square', vol: .045, echo: false,
+    melody: ['E5 . E5 . E5 . . . E5 . E5 . E5 . . .', 'E5 . G5 . C5 . . D5 E5 . . . . . .',
+             'F5 . F5 . F5 . . F5 F5 . E5 . E5 . E5 E5', 'E5 . D5 . D5 . E5 . D5 . . . G5 . . .'],
+    bass: ['C3', 'C3', 'F2', 'G2'], kick: [0, 8], snare: [4, 12], hat: [2, 6, 10, 14] },
+  spring: { bpm: 140, lead: 'triangle', vol: .09, echo: false,
+    melody: ['G5 . A5 . B5 . D6 . B5 . . . G5 . . .', 'E5 . G5 . A5 . . . G5 . E5 . D5 . . .',
+             'C5 . E5 . G5 . C6 . A5 . . . F5 . . .', 'D5 . F#5 . A5 . D6 . C6 . B5 . A5 . . .'],
+    bass: ['G2', 'E2', 'C3', 'D3'], kick: [0, 8], snare: [4, 12], hat: [2, 6, 10, 14] },
+});
 const NOTE = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
 const freqOf = n => { const m = n.match(/^([A-G][#b]?)(\d)$/); return 440 * Math.pow(2, (NOTE[m[1]] + (+m[2] + 1) * 12 - 69) / 12); };
 for (const t of Object.values(TUNES)) t.steps = t.melody.flatMap(bar => bar.split(' ').map(x => x === '.' ? 0 : freqOf(x)));
@@ -890,7 +1025,7 @@ function showMap() {
   for (const c of COURSES) {
     const best = getBest(c.key), par = c.holes.reduce((a, h) => a + h.par, 0);
     const b = document.createElement('button');
-    b.className = 'course ' + c.theme;
+    b.className = 'course ' + (c.skin || c.theme);
     b.innerHTML = `<span class="e">${c.emoji}</span><b>${c.name}</b><span class="d">${c.blurb}</span>` +
       `<span class="holes">${c.holes.map((h, i) => `<span title="${h.name}">${i + 1}</span>`).join('')}</span>` +
       `<span class="best">Par ${par} · ${best === null ? 'Not played yet' : `Best: ${best}`}</span>`;
@@ -1185,7 +1320,7 @@ function step(dt) {
   const sNow = Math.hypot(ball.vx, ball.vy);
   // a little drag plus steady rolling resistance: a putt keeps its pace, then dies smoothly
   // instead of creeping along forever (things weigh less on the moon, so they roll further)
-  const roll = air ? 0 : (item.roll || 45) * (course.lowGrav ? .65 : 1) * ((T.cond && T.cond.roll) || 1);
+  const roll = air ? 0 : (item.roll || 45) * (course.lowGrav ? .65 : 1) * (course.ice ? .5 : 1) * ((T.cond && T.cond.roll) || 1);
   const f = Math.pow(damp, dt * 60) * (sNow > 0 ? Math.max(0, 1 - roll * dt / sNow) : 1);
   ball.vx *= f; ball.vy *= f;
 
@@ -2176,8 +2311,12 @@ const PLANT_LOOK = {
   grass:  { rough: ['#4f9a3c', '#3c7f2e'], tuft: [0x4f9a3c, 0x3c8a30, 0x6ab84a], root: 0x6b4a2b, weed: 'flower', trap: [0x5aa83c, 0xd8324a] },
   desert: { rough: ['#b9a05a', '#9c8444'], tuft: [0xb9a05a, 0x9c8444, 0xc8b46c], root: 0x7a5228, weed: 'cactus', trap: [0x8aa04a, 0xd8504a] },
   moon:   { rough: ['#6a4c9a', '#4e3878'], tuft: [0x8a5cd0, 0x6a44b0, 0xb07cff], root: 0x5a3a8a, weed: 'glow', trap: [0x7a4cc0, 0x3dffb0] },
+  // holiday skins: dead grass, snowy shrubs, spring flowers
+  halloween: { rough: ['#5a5a2e', '#45441f'], tuft: [0x6a6030, 0x4f4822, 0x7a5a2a], root: 0x3b2a22, weed: 'flower', trap: [0x4a7a2a, 0xff7a1a] },
+  christmas: { rough: ['#cfe1f0', '#b4cde2'], tuft: [0xe8f2fb, 0x2f7a4a, 0xd2e4f2], root: 0x6b4a30, weed: 'flower', trap: [0x2f7a4a, 0xd63a3a] },
+  easter: { rough: ['#6fc25f', '#58ad4c'], tuft: [0x6fc25f, 0x58ad4c, 0xffb3d9], root: 0x8a5a3a, weed: 'flower', trap: [0x5fbf5a, 0xff6fae] },
 };
-const plantLook = () => PLANT_LOOK[course.theme];
+const plantLook = () => PLANT_LOOK[course.skin] || PLANT_LOOK[course.theme];
 
 // is a spot clear of everything solid or nasty (and away from the tee and the cups)?
 function plantClear(x, y, gap) {
@@ -2627,7 +2766,8 @@ function buildBackground() {
 function paintGrass(c, R) {
   // grass with a mowed diagonal pattern and little blades
   let g = c.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, '#6cc865'); g.addColorStop(1, '#4aa64b');
+  const th = theme(), field = th.field || ['#6cc865', '#4aa64b'], blades = th.blades || ['rgba(25,85,30,.2)', 'rgba(225,255,200,.16)'];
+  g.addColorStop(0, field[0]); g.addColorStop(1, field[1]);
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   c.fillStyle = 'rgba(255,255,255,.065)';
   for (let x = -H; x < W + H; x += 90) {
@@ -2636,12 +2776,12 @@ function paintGrass(c, R) {
   c.lineWidth = 1.2;
   for (let i = 0; i < 1800; i++) {
     const x = R() * W, y = R() * H;
-    c.strokeStyle = R() < .55 ? 'rgba(25,85,30,.2)' : 'rgba(225,255,200,.16)';
+    c.strokeStyle = R() < .55 ? blades[0] : blades[1];
     c.beginPath(); c.moveTo(x, y); c.lineTo(x + (R() - .5) * 3, y - 2.5 - R() * 3.5); c.stroke();
   }
   for (let i = 0; i < 18; i++) { // tiny flowers
     const x = 40 + R() * (W - 80), y = 40 + R() * (H - 80);
-    c.fillStyle = R() < .5 ? 'rgba(255,255,255,.8)' : 'rgba(255,230,90,.8)';
+    c.fillStyle = R() < .5 ? (th.flowers || [])[0] || 'rgba(255,255,255,.8)' : (th.flowers || [])[1] || 'rgba(255,230,90,.8)';
     for (let k = 0; k < 5; k++) { const a = k * TAU / 5; circle(x + Math.cos(a) * 2.2, y + Math.sin(a) * 2.2, 1.5, c); c.fill(); }
     c.fillStyle = '#ffb703'; circle(x, y, 1.2, c); c.fill();
   }
@@ -3442,9 +3582,22 @@ const THEMES = {
   moon:   { sky: 0x05060f, floor: 0x5c5e66, rail: '#2a2d33', fringe: 'rgba(0,0,0,.28)', sand: ['#6f7178', '#5b5d64'], sandEdge: 'rgba(0,0,0,.6)',
             water: ['#120a26', '#2b1a55'], waves: 'rgba(190,160,255,.25)', tee: '#454b5a', green: '190,200,225', vignette: 'rgba(0,0,0,.4)',
             splash: 'void', gust: 'solarwind', hemi: .5, sun: 0xffffff },
+  // the holiday skins (field: the grass gradient, blades: the dark and light grass strokes)
+  halloween: { sky: 0x241634, floor: 0x2f3d2a, rail: '#2a1d16', fringe: 'rgba(20,10,30,.4)', sand: ['#c9a36a', '#a07c4a'], sandEdge: 'rgba(60,35,10,.6)',
+            water: ['#2f5a2a', '#4f8a3a'], waves: 'rgba(190,255,150,.25)', tee: '#3a4f30', green: '150,190,120', vignette: 'rgba(20,0,40,.45)',
+            splash: 'splash', gust: 'gust', hemi: .48, sun: 0xc8b8ff,
+            field: ['#4f7a3f', '#355a2e'], blades: ['rgba(10,30,10,.25)', 'rgba(200,255,170,.1)'], flowers: ['rgba(255,150,40,.85)', 'rgba(190,120,255,.8)'] },
+  christmas: { sky: 0xcfe6f7, floor: 0xeef4fb, rail: '#5a2a1e', fringe: 'rgba(120,160,200,.3)', sand: ['#ffffff', '#e2edf7'], sandEdge: 'rgba(110,140,170,.5)',
+            water: ['#8fc9ec', '#bfe6fa'], waves: 'rgba(255,255,255,.45)', tee: '#c63a3a', green: '230,245,255', vignette: 'rgba(40,70,110,.22)',
+            splash: 'splash', gust: 'gust', hemi: .72, sun: 0xffffff,
+            field: ['#d9e7f3', '#bcd2e6'], blades: ['rgba(90,130,175,.2)', 'rgba(255,255,255,.45)'], flowers: ['rgba(255,60,60,.85)', 'rgba(60,170,90,.85)'] },
+  easter: { sky: 0xbfe8ff, floor: 0x8fd682, rail: '#6a4a33', fringe: 'rgba(40,120,60,.25)', sand: ['#fff3c4', '#f2dc94'], sandEdge: 'rgba(150,110,40,.45)',
+            water: ['#5fb6e8', '#8fd3f5'], waves: 'rgba(255,255,255,.3)', tee: '#f28bbf', green: '200,250,190', vignette: 'rgba(90,40,90,.15)',
+            splash: 'splash', gust: 'gust', hemi: .7, sun: 0xfff6e8,
+            field: ['#9fe68f', '#78cf72'], blades: ['rgba(40,120,50,.18)', 'rgba(255,255,240,.2)'], flowers: ['rgba(255,170,220,.9)', 'rgba(200,170,255,.9)'] },
 };
 let course = null; // set when a round starts
-const theme = () => THEMES[course.theme];
+const theme = () => THEMES[course.skin || course.theme];
 
 function paintDesert(c, R) {
   let g = c.createLinearGradient(0, 0, W, H);
@@ -3516,6 +3669,33 @@ function cactusBumper(g, r) {
     const cap = new THREE.Mesh(new THREE.SphereGeometry(r * .24, 10, 6), dark); cap.position.set(s * r * 1.05, 41 + s * 4, 0); g.add(cap);
   }
   const flower = new THREE.Mesh(new THREE.SphereGeometry(4, 10, 8), mat(0xff5fa2)); flower.position.y = 50 + r * .5; g.add(flower);
+  return body;
+}
+// holiday bumpers: a jack-o'-lantern, a present, or a painted egg
+function holidayBumper(g, r) {
+  const part3 = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; g.add(o); return o; };
+  if (course.skin === 'halloween') {
+    const body = part3(new THREE.SphereGeometry(r, 16, 10), mat(0xf07a1a, { emissive: 0x000000 }), 0, r * .8, 0); body.scale.y = .8;
+    part3(new THREE.CylinderGeometry(r * .12, r * .16, r * .4, 6), mat(0x3f6b2a), 0, r * 1.55, 0);
+    const lit = new THREE.MeshBasicMaterial({ color: 0xffd84a });
+    for (let k = 0; k < 4; k++) { // a face on every side, so it grins whichever way you look
+      const a = k * Math.PI / 2, f = new THREE.Group(); f.rotation.y = a; g.add(f);
+      for (const ex of [-.35, .35]) { const e = new THREE.Mesh(new THREE.ConeGeometry(r * .17, r * .25, 3), lit); e.position.set(ex * r, r * .95, r * .93); e.rotation.x = Math.PI / 2; f.add(e); }
+      const m = new THREE.Mesh(new THREE.BoxGeometry(r * .8, r * .15, r * .1), lit); m.position.set(0, r * .55, r * .95); f.add(m);
+    }
+    return body;
+  }
+  if (course.skin === 'christmas') {
+    const wrap = [0xd63a3a, 0x2f8f4f, 0x3a6fd6][Math.floor(Math.random() * 3)];
+    const body = part3(new THREE.BoxGeometry(r * 1.7, r * 1.4, r * 1.7), mat(wrap, { emissive: 0x000000 }), 0, r * .7, 0);
+    const ribbon = mat(0xffe14d);
+    part3(new THREE.BoxGeometry(r * 1.74, r * 1.44, r * .3), ribbon, 0, r * .7, 0); part3(new THREE.BoxGeometry(r * .3, r * 1.44, r * 1.74), ribbon, 0, r * .7, 0);
+    for (const s of [-1, 1]) part3(new THREE.TorusGeometry(r * .3, r * .1, 6, 10), ribbon, s * r * .25, r * 1.6, 0).rotation.y = Math.PI / 2;
+    return body;
+  }
+  const cols = [[0xff8fc4, '#ffffff'], [0x7fd0ff, '#fff3a0'], [0xc9a8ff, '#b3ffcc']][Math.floor(Math.random() * 3)];
+  const stripes = paintTex(64, 64, (x, w, h) => { x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h); x.fillStyle = cols[1]; for (let y = 10; y < h; y += 20) x.fillRect(0, y, w, 7); });
+  const body = part3(new THREE.SphereGeometry(r, 18, 12), mat(cols[0], { map: stripes, emissive: 0x000000 }), 0, r * 1.15, 0); body.scale.y = 1.25;
   return body;
 }
 function asteroidBumper(g, r) {
@@ -3600,7 +3780,19 @@ function floorTex(key, R) {
     // draw something at every wrapped position so the tile repeats without seams
     const wrap = (px, py, fn) => { for (const ox of [-w, 0, w]) for (const oy of [-h, 0, h]) fn(px + ox, py + oy); };
     const blot = (px, py, rx, ry, color) => wrap(px, py, (a, b) => { x.fillStyle = color; x.beginPath(); x.ellipse(a, b, rx, ry, 0, 0, TAU); x.fill(); });
-    if (key === 'grass') {
+    if (key === 'halloween') {
+      x.fillStyle = '#2f3d2a'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 24; i++) blot(R() * w, R() * h, 14 + R() * 30, 8 + R() * 18, i % 2 ? '#36452f' : '#283423');
+      for (let i = 0; i < 60; i++) { x.fillStyle = ['#d9681c', '#a8431a', '#e8a13a'][i % 3]; x.fillRect(R() * w, R() * h, 4, 3); } // fallen leaves
+    } else if (key === 'christmas') {
+      x.fillStyle = '#eef4fb'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 22; i++) blot(R() * w, R() * h, 18 + R() * 34, 8 + R() * 16, i % 2 ? '#f8fbff' : '#dde9f5');
+      for (let i = 0; i < 70; i++) { x.fillStyle = i % 4 ? '#ffffff' : '#bcd7ee'; x.fillRect(R() * w, R() * h, 2, 2); } // sparkles
+    } else if (key === 'easter') {
+      x.fillStyle = '#8fd682'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 24; i++) blot(R() * w, R() * h, 14 + R() * 30, 8 + R() * 18, i % 2 ? '#9ade8c' : '#82c977');
+      for (let i = 0; i < 50; i++) { x.fillStyle = ['#ffb3d9', '#c9b3ff', '#fff0a0', '#ffffff'][i % 4]; x.fillRect(R() * w, R() * h, 3, 3); }
+    } else if (key === 'grass') {
       x.fillStyle = '#4f9e4b'; x.fillRect(0, 0, w, h);
       for (let i = 0; i < 26; i++) blot(R() * w, R() * h, 14 + R() * 30, 8 + R() * 18, i % 2 ? '#58a952' : '#47913f');
       for (let i = 0; i < 160; i++) { const px = R() * w, py = R() * h; x.fillStyle = i % 3 ? '#3f8a3a' : '#63b45a'; x.fillRect(px, py, 2, 4); }
@@ -3664,7 +3856,202 @@ function buildScenery(R) {
     return g;
   };
 
-  if (course.theme === 'grass') {
+  if (course.skin === 'halloween') {
+    const [hx, hz] = keep(220, 200), bark = flat(0x3b2a22);
+    for (let i = 0; i < 26; i++) { // bare, twisted trees
+      const [x, z] = spot(), g = group(x, z, .8 + R() * .7);
+      add(g, new THREE.CylinderGeometry(4, 9, 90, 6), bark, 0, 45, 0).rotation.z = (R() - .5) * .25;
+      for (let k = 0; k < 4; k++) {
+        const a = k / 4 * TAU + R(), b = add(g, new THREE.CylinderGeometry(1.5, 3.5, 44, 5), bark, Math.cos(a) * 14, 70 + k * 7, Math.sin(a) * 14);
+        b.rotation.set(Math.sin(a) * .9, 0, -Math.cos(a) * .9);
+      }
+    }
+    const stone = flat(0x8a8d96), moss = flat(0x5d7a4a);
+    for (let i = 0; i < 22; i++) { // gravestones, a bit wonky
+      const [x, z] = spot(-40), g = group(x, z, .8 + R() * .5);
+      g.rotation.set(0, Math.atan2(-x, -z) + (R() - .5) * .5, (R() - .5) * .25);
+      add(g, new THREE.BoxGeometry(26, 32, 7), stone, 0, 16, 0);
+      add(g, new THREE.SphereGeometry(13, 12, 6), stone, 0, 32, 0).scale.z = .27;
+      add(g, new THREE.BoxGeometry(30, 3, 20), moss, 0, 1, 10, false);
+    }
+    const pumpkin = flat(0xf07a1a), stem = flat(0x3f6b2a), face = glow(0xffd84a);
+    for (let i = 0; i < 16; i++) { // jack-o'-lanterns looking at you
+      const [x, z] = spot(-50), g = group(x, z, .7 + R() * .7);
+      g.rotation.y = Math.atan2(-x, -z);
+      add(g, new THREE.SphereGeometry(16, 12, 8), pumpkin, 0, 13, 0).scale.y = .8;
+      add(g, new THREE.CylinderGeometry(2, 2.5, 7, 6), stem, 0, 27, 0);
+      for (const ex of [-6, 6]) add(g, new THREE.ConeGeometry(3.4, 5, 3), face, ex, 17, 14.5, false).rotation.x = Math.PI / 2;
+      add(g, new THREE.BoxGeometry(13, 3, 2), face, 0, 8, 15, false);
+    }
+    // a haunted house with lit windows
+    const house = group(hx, hz, 1.3), wall = flat(0x4a3f55), roofM = flat(0x2a2233), win = glow(0xffd36b);
+    house.rotation.y = Math.atan2(-hx, -hz);
+    add(house, new THREE.BoxGeometry(130, 100, 100), wall, 0, 50, 0);
+    const roof = add(house, new THREE.ConeGeometry(104, 70, 4), roofM, 0, 135, 0); roof.rotation.y = Math.PI / 4; roof.scale.z = .75;
+    add(house, new THREE.BoxGeometry(40, 160, 40), wall, 55, 80, -20);
+    add(house, new THREE.ConeGeometry(34, 60, 4), roofM, 55, 190, -20).rotation.y = Math.PI / 4;
+    for (const [wx2, wy] of [[-35, 65], [20, 65], [-35, 30], [55, 120]]) add(house, new THREE.BoxGeometry(18, 20, 3), win, wx2, wy, wx2 === 55 ? 1 : 51, false);
+    add(house, new THREE.BoxGeometry(22, 40, 3), flat(0x1a1220), 15, 20, 51);
+    // a full moon
+    const moonDisc = mesh(new THREE.SphereGeometry(240, 24, 16), new THREE.MeshBasicMaterial({ color: 0xfff1c4, fog: false }), -2100, 1400, -3800, false);
+    moonDisc.userData.noToon = true;
+    // bats circling, flapping
+    const batM = glow(0x15101c);
+    for (let i = 0; i < 9; i++) {
+      const bat = group(0, 0), r0 = 500 + R() * 500, h0 = 160 + R() * 160, sp = (.25 + R() * .3) * (R() < .5 ? -1 : 1), ph = R() * TAU;
+      add(bat, new THREE.SphereGeometry(5, 6, 4), batM, 0, 0, 0, false);
+      const wings = [-1, 1].map(sd => { const w = add(bat, new THREE.BoxGeometry(2, 1, 18), batM, 0, 0, sd * 9, false); return w; });
+      anim.push(t => {
+        const a = ph + t * sp; bat.position.set(Math.cos(a) * r0, h0 + Math.sin(t * 2 + ph) * 20, Math.sin(a) * r0 * .7);
+        bat.rotation.y = -a + (sp > 0 ? 0 : Math.PI);
+        wings.forEach((w, k) => { w.rotation.x = (k ? 1 : -1) * Math.sin(t * 14 + ph) * .8; });
+      });
+    }
+    // little ghosts bobbing
+    const ghostM = new THREE.MeshLambertMaterial({ color: 0xf2f4ff, transparent: true, opacity: .85 }), eye = glow(0x111111);
+    for (let i = 0; i < 5; i++) {
+      const [x, z] = spot(-20), g = group(x, z, 1 + R() * .4), ph = R() * TAU;
+      g.rotation.y = Math.atan2(-x, -z);
+      add(g, new THREE.SphereGeometry(14, 12, 8), ghostM, 0, 22, 0, false);
+      add(g, new THREE.ConeGeometry(14, 26, 12, 1, true), ghostM, 0, 6, 0, false); // the wavy sheet
+      for (const ex of [-5, 5]) add(g, new THREE.SphereGeometry(2.4, 6, 4), eye, ex, 25, 12.5, false);
+      anim.push(t => { g.position.y = 30 + Math.sin(t * 1.6 + ph) * 12; });
+    }
+    for (let i = 0; i < 8; i++) { // dark hills
+      const a = i / 8 * TAU + R() * .4, d = 2400 + R() * 800, r = 500 + R() * 400;
+      mesh(new THREE.SphereGeometry(r, 16, 10), flat(i % 2 ? 0x2a3324 : 0x232b1f), Math.cos(a) * d, -r * .1, Math.sin(a) * d, false).scale.y = .32;
+    }
+  } else if (course.skin === 'christmas') {
+    const [hx, hz] = keep(200, 170);
+    const pineM = [0x2f7a4a, 0x276b40].map(flat), snow = flat(0xffffff), trunk = flat(0x6b4a30);
+    const bulbs = [0xff4040, 0xffd23d, 0x4fc3ff, 0x6bff6b].map(c => new THREE.MeshBasicMaterial({ color: c }));
+    for (let i = 0; i < 36; i++) { // snowy pines, some with fairy lights
+      const [x, z] = spot(), g = group(x, z, .7 + R() * .8), leaf = pineM[i % 2];
+      add(g, new THREE.CylinderGeometry(6, 8, 30, 7), trunk, 0, 15, 0);
+      add(g, new THREE.ConeGeometry(44, 70, 8), leaf, 0, 60, 0); add(g, new THREE.ConeGeometry(30, 22, 8), snow, 0, 86, 0, false);
+      add(g, new THREE.ConeGeometry(32, 58, 8), leaf, 0, 100, 0); add(g, new THREE.ConeGeometry(18, 20, 8), snow, 0, 122, 0, false);
+      if (R() < .5) for (let k = 0; k < 10; k++) {
+        const a = k * 2.4, y = 40 + k * 7, rr = 40 - k * 3.3;
+        add(g, new THREE.SphereGeometry(3, 6, 4), bulbs[k % 4], Math.cos(a) * rr, y, Math.sin(a) * rr, false);
+      }
+    }
+    anim.push(t => bulbs.forEach((m, k) => m.color.setHex([0xff4040, 0xffd23d, 0x4fc3ff, 0x6bff6b][(k + Math.floor(t * 2)) % 4])));
+    const coal = glow(0x1a1a1a), carrot = flat(0xff8a2a), hatM = flat(0x1f1f24), scarf = flat(0xd63a3a);
+    for (let i = 0; i < 7; i++) { // snowmen
+      const [x, z] = spot(-40), g = group(x, z, .9 + R() * .4);
+      g.rotation.y = Math.atan2(-x, -z);
+      add(g, new THREE.SphereGeometry(20, 14, 10), snow, 0, 18, 0); add(g, new THREE.SphereGeometry(14, 14, 10), snow, 0, 46, 0);
+      add(g, new THREE.SphereGeometry(10, 14, 10), snow, 0, 66, 0);
+      add(g, new THREE.TorusGeometry(10.5, 2.5, 6, 16), scarf, 0, 57, 0).rotation.x = Math.PI / 2;
+      for (const ex of [-3.5, 3.5]) add(g, new THREE.SphereGeometry(1.5, 6, 4), coal, ex, 69, 9, false);
+      add(g, new THREE.ConeGeometry(2, 10, 6), carrot, 0, 66, 13, false).rotation.x = Math.PI / 2;
+      add(g, new THREE.CylinderGeometry(12, 12, 2, 12), hatM, 0, 75, 0); add(g, new THREE.CylinderGeometry(7.5, 7.5, 14, 12), hatM, 0, 82, 0);
+    }
+    const wraps = [0xd63a3a, 0x2f8f4f, 0x3a6fd6, 0xf2c23a, 0xb04fd6].map(flat), ribbon = flat(0xfff4d6);
+    for (let i = 0; i < 16; i++) { // presents
+      const [x, z] = spot(-60), w = 14 + R() * 14, h = 10 + R() * 14, g = group(x, z);
+      g.rotation.y = R() * TAU;
+      add(g, new THREE.BoxGeometry(w, h, w), wraps[i % 5], 0, h / 2, 0);
+      add(g, new THREE.BoxGeometry(w + .6, h + .6, 3), ribbon, 0, h / 2, 0, false); add(g, new THREE.BoxGeometry(3, h + .6, w + .6), ribbon, 0, h / 2, 0, false);
+      add(g, new THREE.TorusGeometry(3.5, 1.2, 6, 10), ribbon, 0, h + 2.5, 0, false);
+    }
+    const red = flat(0xe0303a);
+    for (let i = 0; i < 10; i++) { // giant candy canes
+      const [x, z] = spot(-30), g = group(x, z, .9 + R() * .5);
+      g.rotation.y = R() * TAU;
+      for (let k = 0; k < 8; k++) add(g, new THREE.CylinderGeometry(4, 4, 8, 8), k % 2 ? red : snow, 0, 4 + k * 8, 0);
+      const hook = add(g, new THREE.TorusGeometry(9, 4, 8, 12, Math.PI), red, 9, 64, 0);
+    }
+    // a gingerbread house
+    const gb = group(hx, hz, 1.3), ginger = flat(0xb5712f), icing = flat(0xffffff);
+    gb.rotation.y = Math.atan2(-hx, -hz);
+    add(gb, new THREE.BoxGeometry(110, 70, 90), ginger, 0, 35, 0);
+    const groof = add(gb, new THREE.ConeGeometry(92, 60, 4), icing, 0, 100, 0); groof.rotation.y = Math.PI / 4; groof.scale.z = .8;
+    add(gb, new THREE.BoxGeometry(24, 38, 3), flat(0x7a3f1a), 0, 19, 46);
+    const candy = [0xff4f9a, 0x4fd6ff, 0xffe14d, 0x6bff8a].map(glow);
+    for (let k = 0; k < 14; k++) add(gb, new THREE.SphereGeometry(3.4, 6, 4), candy[k % 4], -50 + k * 7.7, 70, 46, false);
+    for (const wx2 of [-34, 34]) add(gb, new THREE.BoxGeometry(18, 18, 3), glow(0xffd36b), wx2, 42, 46, false);
+    // snow drifts and falling snow
+    for (let i = 0; i < 10; i++) {
+      const a = i / 10 * TAU + R() * .4, d = 2400 + R() * 800, r = 500 + R() * 400;
+      mesh(new THREE.SphereGeometry(r, 16, 10), flat(i % 2 ? 0xf2f7fc : 0xe2ecf6), Math.cos(a) * d, -r * .1, Math.sin(a) * d, false).scale.y = .32;
+    }
+    const n = 700, pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { pos[i * 3] = (R() - .5) * 2600; pos[i * 3 + 1] = R() * 900; pos[i * 3 + 2] = (R() - .5) * 2000; }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    level3D.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 3, sizeAttenuation: false })));
+    anim.push((t, dt) => {
+      for (let i = 0; i < n; i++) {
+        pos[i * 3 + 1] -= (40 + (i % 7) * 6) * dt; pos[i * 3] += Math.sin(t + i) * 8 * dt;
+        if (pos[i * 3 + 1] < 0) pos[i * 3 + 1] += 900;
+      }
+      sg.attributes.position.needsUpdate = true;
+    });
+  } else if (course.skin === 'easter') {
+    const trunk = flat(0x8a5a3a), petals = [0xffb3d9, 0xffffff, 0xffd1e8, 0xd9c2ff].map(flat), leaf = flat(0x5fbf5a);
+    for (let i = 0; i < 30; i++) { // blossom trees
+      const [x, z] = spot(), g = group(x, z, .7 + R() * .7), crown = petals[i % 4];
+      add(g, new THREE.CylinderGeometry(5, 8, 50, 7), trunk, 0, 25, 0);
+      for (let k = 0; k < 4; k++) {
+        const a = k / 4 * TAU + R();
+        add(g, new THREE.IcosahedronGeometry(24 + R() * 10, 1), k === 3 ? leaf : crown, k ? Math.cos(a) * 18 : 0, k ? 62 + R() * 12 : 82, k ? Math.sin(a) * 18 : 0);
+      }
+    }
+    const tulip = [0xff4f7a, 0xffd23d, 0xb070ff, 0xff9a3d, 0xffffff].map(flat), stemM = flat(0x3f9a3f);
+    for (let i = 0; i < 18; i++) { // tulip rows
+      const [x, z] = spot(-60), g = group(x, z), c = tulip[i % 5];
+      g.rotation.y = R() * TAU;
+      for (let k = 0; k < 5; k++) {
+        add(g, new THREE.CylinderGeometry(.9, .9, 16, 5), stemM, (k - 2) * 9, 8, 0, false);
+        add(g, new THREE.CylinderGeometry(4.5, 2.5, 8, 6), c, (k - 2) * 9, 19, 0, false);
+      }
+    }
+    // giant painted eggs
+    const eggTex = cols => paintTex(64, 64, (x, w, h) => {
+      x.fillStyle = cols[0]; x.fillRect(0, 0, w, h);
+      x.fillStyle = cols[1]; for (let y = 8; y < h; y += 18) x.fillRect(0, y, w, 6);
+      x.fillStyle = cols[2]; for (let k = 0; k < 8; k++) { x.beginPath(); x.arc(k * 8 + 4, 3, 2.5, 0, TAU); x.fill(); x.beginPath(); x.arc(k * 8, 60, 2.5, 0, TAU); x.fill(); }
+    });
+    const eggSets = [['#ffb3d9', '#ffffff', '#ff6fae'], ['#b3e6ff', '#fff3a0', '#4fb0e8'], ['#d9c2ff', '#b3ffcc', '#9a6fe8'], ['#fff0a0', '#ff9ec4', '#f2b02a']];
+    for (let i = 0; i < 12; i++) {
+      const [x, z] = spot(-30), r = 12 + R() * 14, g = group(x, z);
+      const egg = add(g, new THREE.SphereGeometry(r, 16, 12), new THREE.MeshLambertMaterial({ map: eggTex(eggSets[i % 4]) }), 0, r * 1.2, 0);
+      egg.scale.y = 1.3; egg.rotation.set((R() - .5) * .4, R() * TAU, (R() - .5) * .4);
+    }
+    // bunnies hopping about
+    const furs = [0xffffff, 0xc9a07a, 0x9a9a9a].map(flat), pink = flat(0xffa8c8);
+    for (let i = 0; i < 6; i++) {
+      const [x0, z0] = spot(-20), g = group(x0, z0, 1.1), fur = furs[i % 3], ph = R() * TAU, dir = R() < .5 ? 1 : -1;
+      add(g, new THREE.SphereGeometry(10, 10, 8), fur, 0, 10, 0).scale.set(1, .9, 1.25);
+      add(g, new THREE.SphereGeometry(7, 10, 8), fur, 0, 20, 10);
+      for (const ex of [-3, 3]) {
+        add(g, new THREE.CylinderGeometry(1.6, 2.2, 14, 6), fur, ex, 32, 8);
+        add(g, new THREE.SphereGeometry(1.2, 6, 4), glow(0x111111), ex * .9, 22, 16, false);
+      }
+      add(g, new THREE.SphereGeometry(3.5, 6, 4), furs[0], 0, 13, -12, false);
+      add(g, new THREE.SphereGeometry(1.4, 6, 4), pink, 0, 19, 17, false);
+      anim.push(t => {
+        const a = ph + t * .35 * dir; g.position.x = x0 + Math.cos(a) * 60; g.position.z = z0 + Math.sin(a) * 60;
+        g.position.y = Math.abs(Math.sin(t * 5 + ph)) * 14; g.rotation.y = -a + (dir > 0 ? Math.PI : 0);
+      });
+    }
+    // a rainbow on the horizon
+    ['#ff5a5a', '#ffa04a', '#ffe14d', '#6be06b', '#4fb0ff', '#9a6fe8'].forEach((c, k) => {
+      const arc = mesh(new THREE.TorusGeometry(1500 - k * 45, 24, 6, 48, Math.PI), new THREE.MeshBasicMaterial({ color: c, fog: false, transparent: true, opacity: .8 }), 600, -100, -3900, false);
+      arc.userData.noToon = true;
+    });
+    for (let i = 0; i < 10; i++) { // soft hills
+      const a = i / 10 * TAU + R() * .4, d = 2500 + R() * 800, r = 500 + R() * 400;
+      mesh(new THREE.SphereGeometry(r, 16, 10), flat([0x8fd682, 0x7fcf78, 0xa3e094][i % 3]), Math.cos(a) * d, -r * .1, Math.sin(a) * d, false).scale.y = .32;
+    }
+    const cloudMat = flat(0xffffff);
+    for (let i = 0; i < 9; i++) {
+      const g = group((R() - .5) * 5000, (R() - .5) * 4000, .8 + R() * .8, 520 + R() * 260);
+      for (let k = 0; k < 4; k++) add(g, new THREE.IcosahedronGeometry(40 + R() * 30, 1), cloudMat, (k - 1.5) * 50, R() * 20, R() * 30, false);
+      const v = 10 + R() * 14;
+      anim.push((t, dt) => { g.position.x += v * dt; if (g.position.x > 3000) g.position.x = -3000; });
+    }
+  } else if (course.theme === 'grass') {
     const trunk = flat(0x7a5230), leaves = [0x2f8a3a, 0x3c9d3f, 0x27773a, 0x4aa84a].map(flat);
     const blossom = flat(0xffa8cc), apple = flat(0xe0392b), [px, pz] = keep(160, 140);
     for (let i = 0; i < 44; i++) {
@@ -3891,7 +4278,7 @@ function build3D() {
   // (the floor has a field-sized hole in it, so pits in the field can go down)
   const fs = new THREE.Shape([[-4500, -4500], [4500, -4500], [4500, 4500], [-4500, 4500]].map(p => new THREE.Vector2(...p)));
   fs.holes.push(new THREE.Path([[-W / 2, -H / 2], [-W / 2, H / 2], [W / 2, H / 2], [W / 2, -H / 2]].map(p => new THREE.Vector2(...p))));
-  const floor = mesh(new THREE.ShapeGeometry(fs), new THREE.MeshLambertMaterial({ map: floorTex(course.theme, R) }), 0, -2, 0, false);
+  const floor = mesh(new THREE.ShapeGeometry(fs), new THREE.MeshLambertMaterial({ map: floorTex(course.skin || course.theme, R) }), 0, -2, 0, false);
   floor.rotation.x = -Math.PI / 2; floor.userData.noToon = true;
   groundTex.needsUpdate = true;
   const ground = mesh(groundGeo(), new THREE.MeshLambertMaterial({ map: groundTex }), 0, 0, 0, false);
@@ -3911,6 +4298,7 @@ function build3D() {
     const g = new THREE.Group(); place(g, bm[0], bm[1]); level3D.add(g);
     if (course.theme === 'desert') return { g, body: cactusBumper(g, bm[2]), bm };
     if (course.theme === 'moon') return { g, body: asteroidBumper(g, bm[2]), bm };
+    if (course.skin) return { g, body: holidayBumper(g, bm[2]), bm };
     const body = new THREE.Mesh(new THREE.CylinderGeometry(bm[2], bm[2] * 1.05, 24, 32), mat(0xff4f9a, { emissive: 0x000000 }));
     body.position.y = 12; body.castShadow = body.receiveShadow = true; g.add(body);
     const rim = new THREE.Mesh(new THREE.TorusGeometry(bm[2] * .72, 3, 8, 32), mat(0xffffff));
