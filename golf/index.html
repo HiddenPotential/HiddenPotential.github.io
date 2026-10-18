@@ -188,6 +188,24 @@
   .screen { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(15,26,16,.55); }
   .screen.show .card { animation: pop .3s steps(3); }
   svg.e { shape-rendering: crispEdges; }
+  body.menu #hud .stat { opacity: .35; }
+  /* phones: the course view is short, so menus cover the whole game instead, with smaller text */
+  @media (max-width: 640px) {
+    #hint { white-space: normal; max-width: 92%; text-align: center; font-size: 12px; }
+    #voice { top: auto; bottom: 8px; max-width: 80%; }
+    #voiceFace { font-size: 22px; }
+    #voiceText { font-size: 12.5px; }
+    .screen { position: fixed; z-index: 6; }
+    .card { padding: 14px 14px; }
+    .card h1 { font-size: 17px; }
+    .card h2 { font-size: 12px; }
+    .card p { margin: 6px 0; font-size: 14px; }
+    .big-emoji { font-size: 44px; }
+    .btn { font-size: 10px; padding: 11px 12px; }
+    .club kbd { display: none; }
+    #hud .stat { font-size: 13px; }
+    .gary { font-size: 12.5px; }
+  }
 </style>
 </head>
 <body>
@@ -198,7 +216,7 @@
     <span class="stat">Strokes <b id="hStrokes">0</b></span>
     <span class="stat">Total <b id="hTotal">E</b></span>
     <span class="stat">🤬 Rage <b id="hRage">0%</b></span>
-    <span><button id="pixBtn" title="Pixel look on/off (P)">👾 Pixel</button> <button id="camBtn" title="Switch camera (C)">🎥 Overview</button> <button id="menuBtn" title="Course map">🗺️</button> <button id="musicBtn" title="Music on/off (N)">🎵</button> <button id="mute" title="Toggle sound (M)">🔊</button><button id="quitBtn" title="Give up">🏳️ Give up</button></span>
+    <span><button id="pixBtn" title="Pixel look on/off (P)">👾 Pixel</button> <button id="camBtn" title="Switch camera (C)">🎥 Overview</button> <button id="menuBtn" title="Course map (leaves the round)">🗺️</button> <button id="musicBtn" title="Music on/off (N)">🎵</button> <button id="mute" title="Toggle sound (M)">🔊</button><button id="quitBtn" title="Give up">🏳️ Give up</button></span>
   </div>
 
   <div id="wrap">
@@ -212,7 +230,7 @@
         <div class="big-emoji">⛳😡✋</div>
         <h1>Wacky Rage Golf</h1>
         <p>Six courses of pixel 3D mini golf, holidays included. Every single hole is out to get you.</p>
-        <p class="small">Drag anywhere to pull back and aim, release to swing.<br>Pick a club with the buttons below or keys 1–4. C switches the camera, P the pixel look.</p>
+        <p class="small">Drag anywhere to pull back and aim, release to swing.<br>Pick a club with the buttons below or keys 1–4. Esc cancels a shot.<br>C switches the camera, P the pixel look, N the music, M all sound.</p>
         <button class="btn" id="startBtn">Tee off (if you dare)</button>
         <p class="small" id="bestLine"></p>
       </div>
@@ -249,6 +267,7 @@
         <div class="big-emoji" id="endEmoji">🏆</div>
         <h2 id="endTitle"></h2>
         <p id="endLine"></p>
+        <div class="gary" id="endVoice"></div>
         <div id="awards"></div>
         <table class="score" id="scoreTable"></table>
         <button class="btn" id="againBtn">Play again</button>
@@ -788,15 +807,30 @@ function tone(freq, dur, type = 'sine', vol = .15, slideTo = 0, delay = 0) {
   o.type = type; o.frequency.setValueAtTime(freq, t);
   if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
-  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .02);
+  o.connect(g).connect(sfxOut()); o.start(t); o.stop(t + dur + .02);
 }
+// all sound goes through one limiter so big moments can't clip; sound effects have their own volume knob for mute
+let master = null, sfxBus = null;
+function masterOut() {
+  if (!master) { master = ac.createDynamicsCompressor(); master.threshold.value = -10; master.knee.value = 8; master.ratio.value = 6; master.connect(ac.destination); }
+  return master;
+}
+function sfxOut() {
+  if (!sfxBus) { sfxBus = ac.createGain(); sfxBus.gain.value = muted ? 0 : 1; sfxBus.connect(masterOut()); }
+  return sfxBus;
+}
+const noiseBufs = new Map(); // a fading burst of noise, made once per length
 function noise(dur, vol = .2, freq = 1000) {
   const a = audio(); if (!a || muted) return;
-  const len = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const key = Math.round(dur * 100);
+  if (!noiseBufs.has(key)) {
+    const len = Math.max(1, Math.floor(a.sampleRate * key / 100)), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    noiseBufs.set(key, buf);
+  }
   const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
   f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
-  s.buffer = buf; s.connect(f).connect(g).connect(a.destination); s.start();
+  s.buffer = noiseBufs.get(key); s.connect(f).connect(g).connect(sfxOut()); s.start();
 }
 // ---------- Music ----------
 // A little chiptune loop for each course, played by the same synth as the sound effects.
@@ -843,12 +877,12 @@ let musicBus = null, musicEcho = null, musicNoise = null, musicDrive = null, mus
 const rageStage = () => rage < 25 ? 0 : rage < 50 ? 1 : rage < 75 ? 2 : 3;
 function startMusic() {
   if (musicBus || !ac) return;
-  musicBus = ac.createGain(); musicBus.gain.value = 0; musicBus.connect(ac.destination);
+  musicBus = ac.createGain(); musicBus.gain.value = 0; musicBus.connect(masterOut());
   // a distorted copy of the music that fades in when you're angry
   const shaper = ac.createWaveShaper(), curve = new Float32Array(1024);
   for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; curve[i] = Math.tanh(x * 6) * .7; }
   shaper.curve = curve; musicDrive = ac.createGain(); musicDrive.gain.value = 0;
-  musicBus.connect(shaper).connect(musicDrive).connect(ac.destination);
+  musicBus.connect(shaper).connect(musicDrive).connect(masterOut());
   // a soft echo for the moon tune
   musicEcho = ac.createDelay(); musicEcho.delayTime.value = .32;
   const fb = ac.createGain(); fb.gain.value = .35;
@@ -984,6 +1018,7 @@ function prepLevel(i) {
 }
 
 function loadHole(i) {
+  leaveHole();
   prepLevel(i);
   $('introHole').textContent = `${course.emoji} ${course.name} · Hole ${i + 1} of ${course.holes.length} · Par ${parOf(i)}`;
   $('introName').textContent = hole.name;
@@ -1008,6 +1043,7 @@ function placeBall(x, y) {
 }
 
 function startGame(key = course.key) {
+  leaveHole();
   course = COURSES.find(c => c.key === key);
   scores = []; rage = 0; peakRage = 0; rageMarks = 0; quitTries = 0; stats = {}; parAdj = [];
   loadHole(0);
@@ -1015,12 +1051,12 @@ function startGame(key = course.key) {
 const bestKey = k => 'wackyRageGolf18_' + k;
 function getBest(k = course.key) { try { const v = localStorage.getItem(bestKey(k)); return v === null ? null : +v; } catch (e) { return null; } }
 function showMenu() {
-  state = 'title'; aim = null;
+  leaveHole(); state = 'title';
   show('titleScreen');
 }
 // the course map: one card per course, with its holes and your best round
 function showMap() {
-  state = 'title'; aim = null;
+  leaveHole(); state = 'title';
   const el = $('courseList'); el.innerHTML = '';
   for (const c of COURSES) {
     const best = getBest(c.key), par = c.holes.reduce((a, h) => a + h.par, 0);
@@ -1035,8 +1071,11 @@ function showMap() {
   show('mapScreen');
 }
 
+let menuOpen = false;
 function show(id) {
   for (const s of document.querySelectorAll('.screen')) s.classList.toggle('show', s.id === id);
+  if (id) $('voice').classList.remove('show');
+  menuOpen = !!id; document.body.classList.toggle('menu', menuOpen);
 }
 
 function totalVsPar() {
@@ -1056,6 +1095,14 @@ function updateHud() {
   $('hRage').style.color = `hsl(${120 - rage * 1.2}, 70%, 38%)`;
 }
 
+// every delayed callback belongs to one hole: leaving the hole (or the round) cancels the ones still waiting
+let run = 0;
+function later(fn, ms) { const id = run; setTimeout(() => { if (id === run) fn(); }, ms); }
+function leaveHole() { run++; aim = null; T.anim = null; $('crash').classList.remove('show'); }
+// a toast that waits its turn instead of cutting off whatever is showing (gives up after a few tries)
+function toastLater(msg, ms, delay, tries = 8) {
+  later(() => { if ($('toast').classList.contains('show') && tries > 0) toastLater(msg, ms, 400, tries - 1); else toast(msg, ms); }, delay);
+}
 let toastTimer = 0;
 function toast(msg, ms = 1800) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -1110,6 +1157,9 @@ function aimVec() {
 }
 
 window.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return; // leave Cmd+C, Ctrl+P and friends to the browser
+  // a clicked button keeps focus, so Space/Enter would press it again: not while playing
+  if ((e.key === ' ' || e.key === 'Enter') && document.activeElement && document.activeElement.closest('#hud, #clubs')) { e.preventDefault(); return; }
   if (e.key >= '1' && e.key <= '4') selectClub(+e.key - 1);
   if (e.key === 'Escape') aim = null;
   if (e.key === 'm' || e.key === 'M') toggleMute();
@@ -1117,7 +1167,10 @@ window.addEventListener('keydown', e => {
   if (e.key === 'c' || e.key === 'C') toggleCam();
   if (e.key === 'p' || e.key === 'P') togglePixel();
 });
-function toggleMute() { muted = !muted; $('mute').textContent = muted ? '🔇' : '🔊'; }
+function toggleMute() {
+  muted = !muted; $('mute').textContent = muted ? '🔇' : '🔊';
+  if (sfxBus) sfxBus.gain.setTargetAtTime(muted ? 0 : 1, ac.currentTime, .02); // cut off anything still playing
+}
 $('mute').onclick = toggleMute;
 $('musicBtn').onclick = toggleMusic;
 // browsers only allow sound after you click or press something, so the first one starts the music
@@ -1125,6 +1178,7 @@ for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => a
 $('musicBtn').classList.toggle('off', !musicOn);
 // the give-up button never lets you give up, and hops to a different spot each time
 $('quitBtn').onclick = e => {
+  if (!['play', 'troll', 'sinking'].includes(state)) return; // nothing to give up on a menu
   quitTries++;
   toast(pick(LINES.noquit), 1600); laugh(); addRage(4); say('quit', 'laugh', true);
   const b = e.currentTarget, row = b.parentNode, others = [...row.children].filter(x => x !== b);
@@ -1300,7 +1354,7 @@ function step(dt) {
     if (Math.random() < .05) sfx.boost();
   }
 
-  portalStep(air); rampStep(air);
+  portalStep(air, dt); rampStep(air, dt);
 
   // curve (the banana is shaped that way)
   let w = ball.spin;
@@ -1428,16 +1482,16 @@ function sink() {
   toast(msg, 2200);
   // ...unless something in the hole has other plans
   const thief = T.ufo > 0 ? 'ufo' : T.thief > 0 ? 'thief' : T.var > 0 ? 'var' : null;
-  if (thief) { T[thief]--; setTimeout(() => { if (state === 'sinking') startAnim(thief); }, 1300); return; }
+  if (thief) { T[thief]--; later(() => { if (state === 'sinking') startAnim(thief); }, 1300); return; }
   addRage(-10); voiceSink();
-  setTimeout(() => finishHole(strokes), 1700);
+  later(() => finishHole(strokes), 1700);
 }
 
 function finishHole(s) {
   if (state === 'end' || scores.length > holeIdx) return;
   state = 'between';
   scores.push(s); stats.maxHole = Math.max(stats.maxHole || 0, s); updateHud();
-  setTimeout(() => {
+  later(() => {
     if (holeIdx + 1 < course.holes.length) loadHole(holeIdx + 1);
     else endGame();
   }, 300);
@@ -1461,7 +1515,7 @@ function endGame() {
   $('awards').innerHTML = '<h3>🏅 Awards</h3>' + awards(total, par);
   $('scoreTable').innerHTML = rows;
   show('endScreen');
-  setTimeout(() => say(d <= 0 ? 'endGood' : 'endBad', d <= 0 ? 'annoyed' : 'laugh', true), 600);
+  $('endVoice').textContent = `${d <= 0 ? MOODS.annoyed : MOODS.laugh} The course: "${pick(SNARK[d <= 0 ? 'endGood' : 'endBad'])}"`;
 }
 
 function floater(text, x, y, color = '#ffd23d') { floaters.push({ text, x, y, t: 1.3, color }); }
@@ -1495,14 +1549,9 @@ const SNARK = {
   endBad:    ['Come back anytime. I will be here. Waiting.', 'Same time tomorrow? I will polish the black holes.', 'That was fun! For me.'],
 };
 const MOODS = { smug: '😏', laugh: '😂', annoyed: '😒', bored: '😴', shocked: '😮', proud: '😌' };
-const EXTRA_NAMES = {
-  gust: 'some wind', crow: 'an eagle', relocate: 'a cup that moves', thief: 'a hand in the cup', mole: 'a hamster', lid: 'a lid',
-  var: 'VAR', ufo: 'a UFO', dog: 'a dog', mower: 'a mower', peel: 'a banana peel', raccoon: 'a raccoon', blackout: 'a power cut',
-  mirror: 'mirror mode', tornado: 'a tornado', boulder: 'a boulder', crash: 'absolutely nothing suspicious', inflation: 'the economy',
-  weed: 'some weeds', flytrap: 'a hungry plant',
-};
 let lastVoice = -99, voiceTimer = 0, voice = { idle: 0, idleSaid: 0, fullT: 0 };
 function say(key, mood = 'smug', force = false, text = null) {
+  if (document.querySelector('.screen.show')) return; // a menu is open: nobody can see the bubble
   if (!force && time - lastVoice < 4) return;
   lastVoice = time;
   const line = text || pick(SNARK[key]);
@@ -1511,15 +1560,11 @@ function say(key, mood = 'smug', force = false, text = null) {
   const el = $('voice'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   clearTimeout(voiceTimer); voiceTimer = setTimeout(() => el.classList.remove('show'), 2600 + line.length * 35);
 }
-// the start of each hole: brag about whatever is waiting on it
+// the start of each hole: brag about today's conditions, but never say which trolls are waiting
 function sayHoleStart() {
-  const bits = [];
-  if (T.cond) bits.push(T.cond.text.split(':')[0].toLowerCase());
-  const extras = (T.extras || []).map(k => EXTRA_NAMES[k]).filter(Boolean);
-  if (extras.length) bits.push(extras.length > 1 ? extras.slice(0, -1).join(', ') + ' and ' + extras[extras.length - 1] : extras[0]);
-  if (!bits.length) return say('startCalm', 'smug', true);
+  if (!T.cond) return say('startCalm', 'smug', true);
   const opener = pick(['I added', 'Today I have', 'Special treat:', 'Oh, and I brought']);
-  say(null, 'smug', true, `${opener} ${bits.join(', plus ')}. You are welcome.`);
+  say(null, 'smug', true, `${opener} ${T.cond.text.split(':')[0].toLowerCase()}. You are welcome.`);
 }
 // called every frame: notice you dawdling or winding up a huge swing
 function voiceTick(dt) {
@@ -1564,7 +1609,7 @@ function addRage(n) {
   rage = clamp(rage + n, 0, 100); peakRage = Math.max(peakRage, rage); updateHud();
   // say something the first time the meter passes 50, 80 and 100 in a round
   const marks = [50, 80, 100], k = marks.filter(m => rage >= m).length;
-  if (k > rageMarks) { rageMarks = k; setTimeout(() => toast(LINES['rage' + marks[k - 1]][0], 2200), 1900); }
+  if (k > rageMarks) { rageMarks = k; toastLater(LINES['rage' + marks[k - 1]][0], 2200, 1900); }
 }
 function laugh() { [392, 370, 349, 330].forEach((f, i) => tone(f, i === 3 ? .7 : .22, 'triangle', .14, i === 3 ? 300 : 0, i * .24)); }
 
@@ -1756,7 +1801,7 @@ function relocateCup(c) {
 // a scripted troll scene: the game waits while it plays out
 function startAnim(type, data = {}) {
   T.anim = { type, t: 0, ...data };
-  if (['thief', 'ufo', 'var', 'crow', 'dog', 'flytrap', 'tornado', 'teeter', 'trap', 'raccoon'].includes(type)) setTimeout(() => say('troll', 'laugh'), 1100);
+  if (['thief', 'ufo', 'var', 'crow', 'dog', 'flytrap', 'tornado', 'teeter', 'trap', 'raccoon'].includes(type)) later(() => say('troll', 'laugh'), 1100);
   bump(type);
   state = 'troll'; aim = null;
   const A = T.anim;
@@ -2029,9 +2074,9 @@ const parOf = i => Math.max(1, course.holes[i].par + (parAdj[i] || 0));
 
 // ----- portals: roll into one, pop out of the other with the same speed -----
 // hole.portals: [[ax, ay, bx, by], ...]
-function portalStep(air) {
+function portalStep(air, dt) {
   if (air || !hole.portals.length) return;
-  if (ball.portalCD > 0) { ball.portalCD -= 1 / 360; return; }
+  if (ball.portalCD > 0) { ball.portalCD -= dt; return; }
   const sp = Math.hypot(ball.vx, ball.vy);
   if (sp < 20) return;
   for (const [ax, ay, bx, by] of hole.portals) for (const [fx, fy, tx, ty] of [[ax, ay, bx, by], [bx, by, ax, ay]]) {
@@ -2053,8 +2098,8 @@ function rampLocal(rp, x, y) {
   const dx = x - rp[0], dy = y - rp[1], c = Math.cos(rp[4]), s = Math.sin(rp[4]);
   return [dx * c + dy * s, -dx * s + dy * c];
 }
-function rampStep(air) {
-  if (air || !hole.ramps.length || ball.rampCD > 0) { if (ball.rampCD > 0) ball.rampCD -= 1 / 360; return; }
+function rampStep(air, dt) {
+  if (air || !hole.ramps.length || ball.rampCD > 0) { if (ball.rampCD > 0) ball.rampCD -= dt; return; }
   const sp = Math.hypot(ball.vx, ball.vy);
   for (const rp of hole.ramps) {
     const [u, v] = rampLocal(rp, ball.x, ball.y);
@@ -2152,8 +2197,9 @@ function inflate() {
 }
 
 // ----- Gary the Caddie: a few words about each hole -----
+// (he only talks about things you can see, never about the trolls waiting for you)
 function garyLine() {
-  const t = T.tr || {}, q = [];
+  const q = [];
   const add = (cond, lines) => { if (cond) q.push(...lines); };
   add(hole.portals.length, ['Portals! Orange in, blue out. Or the other way. I failed physics.', 'Those portals are new. Nobody has tested them. Enjoy.']);
   add(hole.ramps.length, ['A jump ramp. Hit it hard and you fly. Hit it soft and you look silly.', 'The ramp was my idea. You are welcome.']);
@@ -2163,21 +2209,7 @@ function garyLine() {
   add(hole.pulls.length, ['Black holes. Do not look directly at them.', 'If you get spaghettified, I want your clubs.']);
   add(hole.fakes, ['One of these cups is real. I forget which.', 'Pick a cup, any cup. Not that one.']);
   add(hole.mills.length, ['Time the windmill. Or don\'t. I get paid either way.']);
-  add(t.mole, ['A hamster lives in the cup. He has a hard hat. He has a union.']);
-  add(t.lid, ['The cup closes for lunch. Very European.']);
-  add(t.thief, ['Do not celebrate too early on this one. Trust me.']);
-  add(t.ufo, ['If you see lights in the sky, keep putting. Do not make eye contact.']);
-  add(t.crow, ['Watch out for the eagle. He collects things.']);
-  add(t.dog, ['There is a dog. He is a very good boy. He will steal your ball.']);
-  add(t.raccoon, ['Keep an eye on the flag. There have been… incidents.']);
-  add(t.blackout, ['Electricity on this hole is "optional".']);
-  add(t.mirror, ['If your controls feel backwards, that is a you problem.']);
-  add(t.tornado, ['Tornado watch is in effect. It is always in effect.']);
-  add(t.boulder, ['If you hear rumbling, putt faster.']);
-  add(t.flytrap, ['Do not feed the plant. It feeds itself.', 'That flytrap ate my lunch. And my caddie bib.']);
-  add(t.weed, ['Weeds grow fast here. Like, really fast. Like, during your putt.']);
   add(plants.rough.length || plants.roots.length, ['The groundskeeper quit. The plants have taken over.', 'Mind the rough. And the roots. Basically, mind the plants.']);
-  add(t.var, ['VAR is in the booth today. They are very thorough.']);
   add(true, ['This one is easy. That is what I said about the last one.', 'I believe in you. Statistically, I should not.',
     'Par is just a suggestion. A rude one.', 'Fun fact: I have never finished this hole.', 'Just hit it in. How hard can it be? (Very.)']);
   return '🧢 Gary the Caddie: “' + pick(q) + '”';
@@ -2265,7 +2297,7 @@ function tornadoModel() {
 }
 function boulderModel() {
   const col = { grass: 0x8a8378, desert: 0xb06a3a, moon: 0x7c7e86 }[course.theme];
-  const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(38, 1), new THREE.MeshLambertMaterial({ color: col, flatShading: true }));
+  const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(38, 1), new THREE.MeshPhongMaterial({ color: col, flatShading: true, shininess: 0, specular: 0x000000 }));
   rock.castShadow = true;
   const g = new THREE.Group(); g.add(rock); g.userData.rock = rock;
   return g;
@@ -2455,7 +2487,7 @@ function flytrapAnim(A) {
     ball.hidden = false; ball.x = P.x + Math.cos(a) * 20; ball.y = P.y + Math.sin(a) * 20;
     ball.vx = Math.cos(a) * 430; ball.vy = Math.sin(a) * 430; ball.air = ball.airT = .45; ball.moving = true; ball.trolled = true;
     tone(260, .15, 'square', .1, 600); laugh();
-    if (!(T.flytrap > 0)) setTimeout(() => toast(pick(LINES.flytrapfull), 1600), 1200);
+    if (!(T.flytrap > 0)) toastLater(pick(LINES.flytrapfull), 1600, 1200);
     endAnim();
   }
 }
@@ -2647,7 +2679,7 @@ function updateChunks(dt) {
       }
     } else if (ch.st === 'fall') {
       ch.vy += (course.lowGrav ? 450 : 1400) * dt; ch.drop += ch.vy * dt;
-      if (ch.drop > 320) { ch.st = 'gone'; level3D.remove(ch.tile); }
+      if (ch.drop > 320) { ch.st = 'gone'; level3D.remove(ch.tile); disposeObj(ch.tile); }
     }
   }
   if (state !== 'play') return;
@@ -2660,7 +2692,7 @@ function updateChunks(dt) {
     const ok = chunks.filter(ch => ch.st === 'idle' && Math.hypot(ch.x - ball.x, ch.y - ball.y) > ch.rad + 90);
     if (ok.length) {
       crack(pick(ok), 1.2);
-      if (!C.said) { C.said = true; setTimeout(() => toast(pick(LINES.crumbling), 1800), 900); addRage(4); }
+      if (!C.said) { C.said = true; toastLater(pick(LINES.crumbling), 1800, 900); addRage(4); }
     }
   }
 }
@@ -3193,6 +3225,10 @@ function thickEmoji(ch, depth = .14) {
 }
 // ----- golf clubs: built hanging down from the hands, head resting on the ground -----
 const CLUB_LEN = 66;
+// free an object's geometries and materials (not textures: those are shared)
+function disposeObj(o) {
+  o.traverse(m => { if (m.geometry) m.geometry.dispose(); for (const mt of [].concat(m.material || [])) mt.dispose(); });
+}
 function clubModel(key) {
   const hands = new THREE.Group(), club = new THREE.Group();
   hands.rotation.order = 'YXZ'; hands.add(club);
@@ -3692,7 +3728,7 @@ function holidayBumper(g, r) {
   return body;
 }
 function asteroidBumper(g, r) {
-  const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 1), new THREE.MeshLambertMaterial({ color: 0x8e8f96, flatShading: true, emissive: 0x000000 }));
+  const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 1), new THREE.MeshPhongMaterial({ color: 0x8e8f96, flatShading: true, shininess: 0, specular: 0x000000, emissive: 0x000000 }));
   rock.position.y = r * .75; rock.castShadow = rock.receiveShadow = true; g.add(rock);
   for (let i = 0; i < 4; i++) {
     const a = i * 1.7, crater = new THREE.Mesh(new THREE.SphereGeometry(r * .22, 8, 6), mat(0x66676d));
@@ -3829,7 +3865,7 @@ function buildScenery(R) {
     }
   };
   const keep = (m, r) => { const p = spot(m); kept.push([p[0], p[1], r]); return p; };
-  const flat = color => new THREE.MeshLambertMaterial({ color, flatShading: true });
+  const flat = color => new THREE.MeshPhongMaterial({ color, flatShading: true, shininess: 0, specular: 0x000000 });
   const glow = color => new THREE.MeshBasicMaterial({ color });
   const group = (x, z, s = 1, y = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s); level3D.add(g); return g; };
   const add = (g, geo, material, x = 0, y = 0, z = 0, shadow = true) => {
@@ -4778,7 +4814,7 @@ function draw() {
   drawDecals();
 
   for (const { g, body, bm } of U.bumpers) {
-    bm.flash = Math.max(0, (bm.flash || 0) - 1 / 60);
+    bm.flash = Math.max(0, (bm.flash || 0) - drawDt);
     const s = 1 + bm.flash * .8;
     g.scale.set(s, 1 + bm.flash * 1.5, s);
     body.material.emissive.setHex(bm.flash ? 0xffb000 : 0x000000);
@@ -4817,7 +4853,7 @@ function draw() {
   }
   const bs = U.ball, bsh = U.ballShadow;
   let lift = ball.carryH !== undefined ? ball.carryH : liftOf(), scale = 1;
-  if (state === 'sinking') { const c = realCup(); sinkAnim += 1 / 60; scale = Math.max(0, 1 - sinkAnim * 2.5); ball.x += (c.x - ball.x) * .2; ball.y += (c.y - ball.y) * .2; lift = -sinkAnim * 30; }
+  if (state === 'sinking') { const c = realCup(); sinkAnim += drawDt; scale = Math.max(0, 1 - sinkAnim * 2.5); const pull = 1 - Math.pow(.8, drawDt * 60); ball.x += (c.x - ball.x) * pull; ball.y += (c.y - ball.y) * pull; lift = -sinkAnim * 30; }
   if (T.anim && T.anim.type === 'trap') { scale = 1 - (T.anim.shrink || 0); lift = -T.anim.shrink * 20; }
   bs.visible = bsh.visible = !ball.gone && !ball.hidden && scale > 0;
   if (lift < 0) bsh.visible = false; // it's below the ground
@@ -4844,8 +4880,10 @@ function draw() {
   const club = CLUBS[clubIdx];
   const shown = swing ? swing.club : club;
   if (!U.club || U.club.userData.key !== shown.key) {
-    if (U.club) level3D.remove(U.club);
-    U.club = clubModel(shown.key); level3D.add(U.club);
+    U.clubs = U.clubs || {};
+    if (!U.clubs[shown.key]) { U.clubs[shown.key] = clubModel(shown.key); level3D.add(U.clubs[shown.key]); }
+    if (U.club) U.club.visible = false;
+    U.club = U.clubs[shown.key];
   }
   const aiming = !!(aim && state === 'play');
   U.club.visible = aiming || !!swing;
@@ -4878,7 +4916,7 @@ function draw() {
     s.material.opacity = Math.min(1, f.t * 2);
     place(s, f.x, f.y + 30, 70 + (1.3 - f.t) * 60);
   }
-  for (const [f, s] of U.floaters) if (!floaters.includes(f)) { level3D.remove(s); U.floaters.delete(f); }
+  for (const [f, s] of U.floaters) if (!floaters.includes(f)) { level3D.remove(s); s.material.dispose(); U.floaters.delete(f); }
 
   // particles
   const pos = pGeo.attributes.position.array, colr = pGeo.attributes.color.array;
@@ -4937,7 +4975,7 @@ function drawMini() {
 }
 
 // ---------- Loop ----------
-let lastT = performance.now(), drawDt = 1 / 60;
+let lastT = performance.now(), drawDt = 1 / 60, lastMenuDraw = -1;
 function frame(now) {
   let dt = Math.min(.05, (now - lastT) / 1000); lastT = now; drawDt = dt;
   time += dt;
@@ -4967,16 +5005,22 @@ function frame(now) {
     if (ball.moving && state === 'play') { ball.trail.push([ball.x, ball.y]); if (ball.trail.length > 12) ball.trail.shift(); }
     else if (ball.trail.length) ball.trail.shift();
   }
-  if (hole) { draw(); drawMini(); drawDark(); }
+  if (hole && (!menuOpen || time - lastMenuDraw > .1)) { lastMenuDraw = time; draw(); drawMini(); drawDark(); }
   requestAnimationFrame(frame);
 }
 
 // ---------- Start ----------
 $('startBtn').onclick = () => { audio(); showMap(); };
-$('introBtn').onclick = () => { show(null); state = 'play'; setTimeout(() => { if (state === 'play') sayHoleStart(); }, 500); };
+$('introBtn').onclick = () => { show(null); state = 'play'; later(() => { if (state === 'play') sayHoleStart(); }, 500); };
 $('againBtn').onclick = () => startGame();
 $('mapBtn2').onclick = showMap;
-$('menuBtn').onclick = showMap;
+// leaving mid-round throws the round away, so the map button asks first (click it again to leave)
+let mapArmed = -99;
+$('menuBtn').onclick = () => {
+  const midRound = ['play', 'troll', 'sinking', 'between'].includes(state) && (strokes > 0 || scores.length > 0);
+  if (midRound && time - mapArmed > 3) { mapArmed = time; toast('🗺️ Leaving ends this round. Click 🗺️ again to leave.', 2600); return; }
+  showMap();
+};
 $('camBtn').onclick = toggleCam;
 $('pixBtn').onclick = togglePixel;
 
