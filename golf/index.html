@@ -1325,12 +1325,6 @@ function step(dt) {
   ball.vx *= f; ball.vy *= f;
 
   if (T.cond && T.cond.breeze && !air) { ball.vx += Math.cos(T.breezeA) * 60 * dt; ball.vy += Math.sin(T.breezeA) * 60 * dt; }
-  if (T.cond && T.cond.hiccups && !air && sNow > 60 && Math.random() < .6 * dt) {
-    // hic! a little hop that knocks it slightly off line
-    const a = (Math.random() - .5) * .8, c = Math.cos(a), s = Math.sin(a);
-    [ball.vx, ball.vy] = [ball.vx * c - ball.vy * s, ball.vx * s + ball.vy * c];
-    ball.air = ball.airT = .22; tone(700, .08, 'square', .06, 1100); floater('hic!', ball.x, ball.y, '#ffffff');
-  }
   ball.x += ball.vx * dt; ball.y += ball.vy * dt;
   ball.rot += (Math.hypot(ball.vx, ball.vy) / item.r) * dt * (ball.vx >= 0 ? 1 : -1) * .5;
 
@@ -1582,7 +1576,6 @@ const CONDITIONS = [
   { emoji: '🫨', text: 'Shaky hands: your aim wobbles a bit.', wobble: .14 },
   { emoji: '🎲', text: 'Random power: every swing is somewhere from 70% to 130%.', dice: true },
   { emoji: '🌬️', text: 'Steady breeze: everything drifts.', breeze: true },
-  { emoji: '😵', text: 'Hiccups: the ball hops on its own sometimes.', hiccups: true },
 ];
 // [troll, how likely it is to be picked]
 const EXTRAS = [['gust', 3], ['crow', 2], ['relocate', 2], ['thief', 2], ['mole', 2], ['lid', 2], ['var', 2], ['ufo', 1],
