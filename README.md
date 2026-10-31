@@ -18,9 +18,10 @@ Find the section you want (About Me, Things I Do, My Favorite Things, Stuff I Ma
 
 ## Other pages on this site
 
-- `games/coin-pusher/`, `games/claw-machine/`, `games/wacky-rage-golf/`: one page per game, each with a `thumbnail.jpg` used on the homepage. Coin Pusher and Claw Machine show the arcade from `arcade/` in a frame (`?solo` shows just one game); Wacky Rage Golf shows `golf/`.
+- `games/coin-pusher/`, `games/claw-machine/`, `games/wacky-rage-golf/`, `games/drift/`: one page per game, each with a `thumbnail.jpg` used on the homepage. Coin Pusher and Claw Machine show the arcade from `arcade/` in a frame (`?solo` shows just one game); Wacky Rage Golf shows `golf/`; Drift shows `drift/`.
 - `arcade/`: the arcade game itself (`index.html` and its `audio/` music), copied from the `cool` repo. To update it, copy those files over again.
 - `golf/`: Wacky Rage Golf (`index.html`), copied from the `coolgame` repo. To update it, copy that file over again. Its page sizes the frame to fit the game.
+- `drift/`: Drift, the calm game (`index.html`, `style.css` and its `.js` files), copied from the `Last-Nighthawk` repo. To update it, copy those files over again. The lantern lake's shared quotes need that repo's `server.py`, so here quotes stay on each visitor's device.
 - `apps/fluffipets/`: Fluffipets app page, privacy policy, and support
 - `google444b4c14092b6f73.html`: Google Search Console verification (don't delete!)
 
