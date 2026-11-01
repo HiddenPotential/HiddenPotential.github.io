@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trick or Treat Street | A Free Halloween Game by Anna Wang</title>
+  <meta name="description" content="Play Trick or Treat Street, a free 3D Halloween game made by Anna Wang. Pick a costume, knock on doors for treats (or tricks!), dodge ghosts, and get home by midnight with the biggest candy haul.">
+  <meta name="author" content="Anna Wang">
+  <link rel="canonical" href="https://annawang.net/games/trick-or-treat/">
+  <meta name="theme-color" content="#fdfcf7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f2d27" media="(prefers-color-scheme: dark)">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Anna Wang">
+  <meta property="og:title" content="Trick or Treat Street | A game by Anna Wang">
+  <meta property="og:description" content="A 3D Halloween game you can play in your browser: pick a costume, knock on doors for candy, and dodge the ghosts before midnight.">
+  <meta property="og:url" content="https://annawang.net/games/trick-or-treat/">
+  <meta property="og:image" content="https://annawang.net/games/trick-or-treat/thumbnail.jpg">
+  <meta property="og:image:alt" content="A kid in a pumpkin costume on a spooky street at night, with two ghosts floating behind">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Trick or Treat Street | A game by Anna Wang">
+  <meta name="twitter:description" content="A 3D Halloween game you can play in your browser: pick a costume, knock on doors for candy, and dodge the ghosts before midnight.">
+  <meta name="twitter:image" content="https://annawang.net/games/trick-or-treat/thumbnail.jpg">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    try {
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Trick or Treat Street",
+    "url": "https://annawang.net/games/trick-or-treat/",
+    "image": "https://annawang.net/games/trick-or-treat/thumbnail.jpg",
+    "description": "A free 3D Halloween game: pick a costume, knock on doors for treats or tricks, dodge ghosts, and get home by midnight with the biggest candy haul.",
+    "gamePlatform": "Web browser",
+    "applicationCategory": "Game",
+    "author": { "@type": "Person", "@id": "https://annawang.net/#anna", "name": "Anna Wang", "url": "https://annawang.net/" }
+  }
+  </script>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/" aria-label="Anna Wang, homepage">AW</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Switch between notebook and chalkboard theme" title="Switch theme">
+      <span class="icon-sun" aria-hidden="true">☀️</span><span class="icon-moon" aria-hidden="true">🌙</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="section game-page" aria-labelledby="game-title">
+      <a class="back" href="/#games">← All my games</a>
+      <h1 id="game-title"><span class="highlight">Trick or Treat Street</span> 🎃</h1>
+      <p class="play-note">It's Halloween night! Pick a costume (each one has its own power), then walk up to houses and knock for candy. Most doors give you a treat, but some play a trick on you, and ghosts are floating down the street. Get home by midnight with the biggest haul you can! Walk with the arrow keys or WASD, drag to look around, and turn your sound on for spooky music. 🎧 Click the game first so it hears your keys. It's even better <a href="/trick-or-treat/">full screen</a>.</p>
+      <div class="game-frame">
+        <iframe src="/trick-or-treat/" title="Trick or Treat Street, a Halloween game by Anna Wang" allow="autoplay; fullscreen" style="height: min(82vh, 860px)"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>made with ♥ by <a href="/">Anna Wang</a> · 2026</span>
+  </footer>
+
+  <script src="/script.js" defer></script>
+</body>
+</html>
