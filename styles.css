@@ -1,44 +1,56 @@
-/* Notebook paper (light) and chalkboard (dark) */
+/* Scrapbook: kraft cardstock (light) and chalkboard (dark) */
 :root {
-  --bg: #fdfcf7;
-  --rule: #e3ecf6;
-  --margin: #f6c4c4;
+  --bg: #efe1c6;
+  --dot: rgba(120, 90, 50, .16);
   --text: #2a2a3a;
-  --muted: #6a6a7c;
+  --muted: #6b5a47;
   --pen: #e0553d;
   --hl: #fff27a;
   --card: #ffffff;
-  --border: #dcdce4;
+  --border: #d3bf9b;
   --hand: "Caveat", "Comic Sans MS", cursive;
   --print: "Patrick Hand", "Comic Sans MS", system-ui, sans-serif;
   --max: 760px;
+  /* scrapbook bits: paper that's stuck onto the page, and washi tape to hold it */
+  --paper: #fffdf6;
+  --ink: #2a2a3a;
+  --ink-soft: #5f5f72;
+  --tape-a: rgba(255, 226, 120, .82);
+  --tape-b: rgba(255, 244, 190, .82);
+  --stuck: 0 1px 2px rgba(0, 0, 0, .12), 0 8px 18px rgba(0, 0, 0, .12);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .35 0 0 0 0 .3 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --doodles: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' fill='none' stroke='%238a6a44' stroke-opacity='.2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M44 24l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z'/%3E%3Cpath d='M200 66c-6-10-22-4-14 8l14 13 14-13c8-12-8-18-14-8z'/%3E%3Cpath d='M126 160c0-6 8-6 8 0s-12 10-14 0 12-18 22-8 6 26-12 24'/%3E%3Cpath d='M18 214q10-10 20 0t20 0 20 0'/%3E%3Cpath d='M236 196v16M228 204h16'/%3E%3Cpath d='M86 252l6-10 6 10'/%3E%3Cpath d='M250 26l3 6 6 3-6 3-3 6-3-6-6-3 6-3z'/%3E%3Ccircle cx='96' cy='76' r='3'/%3E%3Ccircle cx='244' cy='136' r='2.5'/%3E%3Ccircle cx='60' cy='126' r='2'/%3E%3Ccircle cx='176' cy='246' r='2.5'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #1f2d27;
-    --rule: rgba(255, 255, 255, .04);
-    --margin: rgba(255, 140, 140, .2);
+    --dot: rgba(255, 255, 255, .07);
+    --doodles: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' fill='none' stroke='%23ffffff' stroke-opacity='.13' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M44 24l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z'/%3E%3Cpath d='M200 66c-6-10-22-4-14 8l14 13 14-13c8-12-8-18-14-8z'/%3E%3Cpath d='M126 160c0-6 8-6 8 0s-12 10-14 0 12-18 22-8 6 26-12 24'/%3E%3Cpath d='M18 214q10-10 20 0t20 0 20 0'/%3E%3Cpath d='M236 196v16M228 204h16'/%3E%3Cpath d='M86 252l6-10 6 10'/%3E%3Cpath d='M250 26l3 6 6 3-6 3-3 6-3-6-6-3 6-3z'/%3E%3Ccircle cx='96' cy='76' r='3'/%3E%3Ccircle cx='244' cy='136' r='2.5'/%3E%3Ccircle cx='60' cy='126' r='2'/%3E%3Ccircle cx='176' cy='246' r='2.5'/%3E%3C/svg%3E");
     --text: #f1efe6;
     --muted: #b0bcb4;
     --pen: #ff9b85;
     --hl: rgba(255, 233, 92, .3);
     --card: #26362f;
     --border: #3a4c44;
+    --paper: #f0eadb;
+    --stuck: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 22px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #1f2d27;
-  --rule: rgba(255, 255, 255, .04);
-  --margin: rgba(255, 140, 140, .2);
+  --dot: rgba(255, 255, 255, .07);
+  --doodles: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' fill='none' stroke='%23ffffff' stroke-opacity='.13' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M44 24l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z'/%3E%3Cpath d='M200 66c-6-10-22-4-14 8l14 13 14-13c8-12-8-18-14-8z'/%3E%3Cpath d='M126 160c0-6 8-6 8 0s-12 10-14 0 12-18 22-8 6 26-12 24'/%3E%3Cpath d='M18 214q10-10 20 0t20 0 20 0'/%3E%3Cpath d='M236 196v16M228 204h16'/%3E%3Cpath d='M86 252l6-10 6 10'/%3E%3Cpath d='M250 26l3 6 6 3-6 3-3 6-3-6-6-3 6-3z'/%3E%3Ccircle cx='96' cy='76' r='3'/%3E%3Ccircle cx='244' cy='136' r='2.5'/%3E%3Ccircle cx='60' cy='126' r='2'/%3E%3Ccircle cx='176' cy='246' r='2.5'/%3E%3C/svg%3E");
   --text: #f1efe6;
   --muted: #b0bcb4;
   --pen: #ff9b85;
   --hl: rgba(255, 233, 92, .3);
   --card: #26362f;
   --border: #3a4c44;
+  --paper: #f0eadb;
+  --stuck: 0 1px 2px rgba(0, 0, 0, .35), 0 10px 22px rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 
@@ -48,10 +60,12 @@ body {
   color: var(--text);
   font: 20px/1.6 var(--print);
   background-color: var(--bg);
-  /* lined paper + margin line */
+  /* a scrapbook page: paper grain, hand-drawn doodles, and a soft dot grid */
   background-image:
-    linear-gradient(90deg, transparent 40px, var(--margin) 40px, var(--margin) 42px, transparent 42px),
-    repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px);
+    var(--grain),
+    var(--doodles),
+    radial-gradient(circle, var(--dot) 1.3px, transparent 1.8px);
+  background-size: 160px 160px, 280px 280px, 26px 26px;
   background-attachment: local;
 }
 h1, h2, h3 { font-family: var(--hand); font-weight: 700; line-height: 1.1; }
@@ -175,6 +189,139 @@ a.card:hover { border-color: var(--pen); }
 }
 .card .arrow { position: absolute; top: 12px; right: 16px; color: var(--pen); }
 
+/* ── Scrapbook ───────────────────────────────────────────
+   Everything sits on the notebook page as if it was cut out and stuck on:
+   tape on the headings, polaroids, a taped note, index cards, sticky notes and tags.
+   Tilts use the `rotate` property, so they don't fight the easter-egg animations. */
+
+/* a strip of washi tape, used on headings and to hold things down */
+.tape, .section h2, .paper::before, .game-card::before, .photo-frame::before, .game-frame::before, .game-frame::after {
+  background: repeating-linear-gradient(-45deg, var(--tape-a) 0 9px, var(--tape-b) 9px 18px);
+}
+.section h2 {
+  display: inline-block; position: relative; padding: 2px 22px 6px; color: var(--ink);
+  rotate: -1.2deg; box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
+  /* torn zigzag ends */
+  clip-path: polygon(0 0, 100% 0, 98.6% 20%, 100% 40%, 98.6% 60%, 100% 80%, 98.6% 100%, 0 100%, 1.4% 80%, 0 60%, 1.4% 40%, 0 20%);
+}
+.section:nth-of-type(even) h2 {
+  --tape-a: rgba(140, 214, 226, .8); --tape-b: rgba(210, 240, 245, .8); rotate: 1deg;
+}
+.section:nth-of-type(3n) h2 { --tape-a: rgba(255, 160, 190, .8); --tape-b: rgba(255, 222, 232, .8); }
+
+/* your photo is a polaroid taped on */
+.photo-frame { position: relative; }
+.photo-frame::before {
+  content: ""; position: absolute; top: -10px; left: 50%; width: 70px; height: 22px; z-index: 1;
+  translate: -50% 0; rotate: -6deg; box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+}
+.avatar {
+  border-radius: 3px; border: 0; padding: 8px 8px 30px; background: var(--paper);
+  box-shadow: var(--stuck); rotate: 3deg;
+}
+.avatar img { border-radius: 2px; }
+
+/* links are stickers */
+.links a {
+  border: 0; background: var(--paper); color: var(--ink); box-shadow: var(--stuck); rotate: -2deg;
+  transition: rotate .15s, translate .15s;
+}
+.links li:nth-child(even) a { rotate: 2deg; }
+.links a:hover { color: var(--pen); rotate: 0deg; translate: 0 -2px; }
+
+/* "About Me" is a note taped onto the page */
+.paper {
+  position: relative; border: 0; border-radius: 2px; color: var(--ink); rotate: .5deg;
+  background: var(--paper) repeating-linear-gradient(transparent 0 31px, rgba(120, 160, 220, .18) 31px 32px);
+  background-position: 0 14px; box-shadow: var(--stuck); padding: 22px 24px;
+}
+.paper::before {
+  content: ""; position: absolute; top: -11px; left: 50%; width: 110px; height: 24px;
+  translate: -50% 0; rotate: -3deg; box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+}
+
+/* game cards are polaroids */
+.games { gap: 26px 20px; padding-top: 8px; }
+.game-card {
+  position: relative; overflow: visible; border: 0; border-radius: 3px; padding: 10px 10px 0;
+  background: var(--paper); color: var(--ink); box-shadow: var(--stuck); rotate: -1.6deg;
+  transition: rotate .2s, translate .2s, scale .2s, box-shadow .2s;
+}
+.game-card:nth-child(even) { rotate: 1.4deg; }
+.game-card:nth-child(3n) { rotate: -.6deg; }
+.game-card::before {
+  content: ""; position: absolute; top: -11px; left: 50%; width: 76px; height: 22px; z-index: 1;
+  translate: -50% 0; rotate: 4deg; box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+}
+.game-card:hover { transform: none; rotate: 0deg; translate: 0 -4px; scale: 1.03; }
+.game-card img { border-radius: 2px; }
+.game-card .text { padding: 10px 6px 14px; text-align: center; }
+.game-card p { color: var(--ink-soft); }
+
+/* "Things I Do" are index cards with a push pin */
+.activities { gap: 22px 18px; padding-top: 6px; }
+.activity {
+  position: relative; border: 0; border-radius: 2px; color: var(--ink); box-shadow: var(--stuck);
+  background:
+    linear-gradient(rgba(230, 90, 90, .55), rgba(230, 90, 90, .55)) 0 58px / 100% 2px no-repeat,
+    repeating-linear-gradient(transparent 0 27px, rgba(120, 160, 220, .22) 27px 28px) 0 60px / 100% calc(100% - 60px) no-repeat,
+    var(--paper);
+  rotate: -.8deg;
+}
+.activity:nth-child(even) { rotate: .9deg; }
+.activity h3 { margin-bottom: 14px; }
+.activity::before {
+  content: ""; position: absolute; top: -7px; left: 50%; width: 16px; height: 16px; border-radius: 50%; translate: -50% 0;
+  background: radial-gradient(circle at 35% 35%, #ff9a9a, #d8323a 60%, #8e1a22); box-shadow: 1px 3px 3px rgba(0, 0, 0, .3);
+}
+.activity h3 a { color: var(--ink); }
+.activity ul { color: var(--ink-soft); }
+
+/* favourites are sticky notes */
+.faves { gap: 16px; }
+.fave {
+  --note: #fff3a6;
+  border: 0; border-radius: 2px; color: var(--ink); background: var(--note);
+  background-image: linear-gradient(rgba(0, 0, 0, .05), transparent 18px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .15), 3px 8px 10px -4px rgba(0, 0, 0, .28);
+  rotate: -2deg;
+}
+.fave:nth-child(5n+2) { --note: #ffd3df; rotate: 1.8deg; }
+.fave:nth-child(5n+3) { --note: #cdeefd; rotate: -1deg; }
+.fave:nth-child(5n+4) { --note: #d6f5c8; rotate: 2.4deg; }
+.fave:nth-child(5n+5) { --note: #ffe1b8; rotate: -2.6deg; }
+.fave .label { color: var(--ink-soft); }
+
+/* "Stuff I Made" are kraft paper tags */
+.cards { gap: 22px 18px; }
+.cards .card {
+  border: 0; border-radius: 4px 14px 14px 4px; color: var(--ink); padding: 18px 22px 18px 40px;
+  background: #e8cfa3 linear-gradient(135deg, rgba(255, 255, 255, .18), transparent 60%);
+  box-shadow: var(--stuck); outline: 2px dashed rgba(90, 60, 20, .35); outline-offset: -8px; rotate: -1deg;
+}
+.cards .card:nth-child(even) { rotate: 1.2deg; }
+/* the tag's string hole */
+.cards .card::before {
+  content: ""; position: absolute; left: 14px; top: 50%; width: 12px; height: 12px; translate: 0 -50%;
+  border-radius: 50%; background: var(--bg); box-shadow: 0 0 0 3px #c9a86e, inset 1px 1px 2px rgba(0, 0, 0, .3);
+}
+.cards .card p { color: #5a4a35; }
+.cards a.card:hover { rotate: 0deg; }
+.card .store { background: var(--ink); color: var(--paper); }
+
+/* each game sits in a frame taped onto the page */
+.game-frame { position: relative; margin-top: 22px; }
+.game-frame iframe { border: 6px solid var(--paper); border-radius: 6px; box-shadow: var(--stuck); }
+.game-frame::before, .game-frame::after {
+  content: ""; position: absolute; top: -10px; width: 90px; height: 24px; z-index: 1; box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+}
+.game-frame::before { left: -18px; rotate: -32deg; }
+.game-frame::after { right: -18px; rotate: 32deg; }
+
+/* a cut-out line above the footer */
+.footer { position: relative; border-top: 2px dashed var(--border); margin-top: 24px; }
+.footer::before { content: "✂"; position: absolute; top: -17px; left: 52px; font-size: 1.3rem; color: var(--muted); background: var(--bg); padding: 0 6px; }
+
 .footer {
   max-width: var(--max); margin: 0 auto; padding: 24px 24px 48px 64px;
   font-family: var(--hand); font-size: 1.4rem; color: var(--muted);
@@ -184,9 +331,6 @@ a.card:hover { border-color: var(--pen); }
 @media (max-width: 600px) {
   body {
     font-size: 18px;
-    background-image:
-      linear-gradient(90deg, transparent 20px, var(--margin) 20px, var(--margin) 22px, transparent 22px),
-      repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px);
   }
   .nav { padding: 12px 16px 0 36px; }
   .hero { column-gap: 12px; }
