@@ -178,7 +178,7 @@ html { scroll-behavior: smooth; }
 .fave .value { font-family: var(--hand); font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
 
 /* Projects */
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 12px; }
 .card { position: relative; display: block; padding: 16px 20px; color: var(--text); text-decoration: none; }
 a.card:hover { border-color: var(--pen); }
 .card h3 { margin: 0 0 4px; font-size: 1.7rem; }
@@ -307,14 +307,16 @@ a.card:hover { border-color: var(--pen); }
 }
 .cards .card p { color: #5a4a35; }
 .cards a.card:hover { rotate: 0deg; }
-/* a picture of each project, stuck onto its tag */
+/* a picture of each project, stuck onto its tag. min-width: 0 lets a tag shrink to the
+   column instead of stretching to the picture's full size, which pushed it off a phone screen */
+.cards .card { min-width: 0; }
 .cards .card-pic {
-  display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top;
-  margin: 0 0 12px; border: 5px solid #fffdf6; border-radius: 2px; box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
-  rotate: -1.2deg;
+  display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top;
+  margin: 4px 0 12px; border: 4px solid #fffdf6; border-radius: 2px; box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
 }
-.cards .card:nth-child(even) .card-pic { rotate: 1deg; }
-.cards .card .arrow { z-index: 1; top: 8px; right: 10px; padding: 0 7px; border-radius: 999px; background: #fffdf6; }
+/* the tags with pictures keep everything inside their stitched border, so the arrow moves to the bottom corner */
+.cards .card:has(.card-pic) { padding-top: 20px; padding-bottom: 22px; }
+.cards .card:has(.card-pic) .arrow { top: auto; bottom: 14px; right: 18px; }
 /* a "NEW!" starburst sticker */
 .new-badge {
   position: absolute; top: -20px; left: -16px; z-index: 2; width: 74px; height: 74px;
