@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dev Log | When Anna Wang Made Each Game</title>
+  <meta name="description" content="Anna Wang's dev log: when each of her games and apps was made, what it is, how long it took, and what happened while building it.">
+  <meta name="author" content="Anna Wang">
+  <link rel="canonical" href="https://annawang.net/devlog/">
+  <meta name="theme-color" content="#efe1c6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f2d27" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Anna Wang">
+  <meta property="og:title" content="Dev Log | Anna Wang">
+  <meta property="og:description" content="Seven games and apps, one episode each: when I made them, what they are, and what happened along the way.">
+  <meta property="og:url" content="https://annawang.net/devlog/">
+  <meta property="og:image" content="https://annawang.net/games/wacky-rage-golf/thumbnail.jpg">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Dev Log | Anna Wang">
+  <meta name="twitter:description" content="Seven games and apps, one episode each: when I made them, what they are, and what happened along the way.">
+  <meta name="twitter:image" content="https://annawang.net/games/wacky-rage-golf/thumbnail.jpg">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    try {
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+  <style>
+    /* ---- the top: stats and a calendar strip ---- */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+    .stats li {
+      background: var(--card); border: 2px dashed var(--border); border-radius: 12px; padding: 8px 10px;
+      font-size: .9rem; color: var(--muted); text-align: center; line-height: 1.25;
+    }
+    .stats b { display: block; font-family: var(--hand); font-size: 2rem; color: var(--text); line-height: 1.1; }
+    @media (max-width: 600px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    .cal { margin: 22px 0 0; }
+    .cal h2 { font-size: 1.8rem; margin: 0 0 6px; }
+    .strip {
+      position: relative; height: 92px; margin: 0 6px;
+      border-bottom: 3px solid var(--text); opacity: .95;
+    }
+    .month { position: absolute; bottom: -30px; transform: translateX(-50%); font-size: .9rem; color: var(--muted); }
+    .tick { position: absolute; bottom: -9px; width: 2px; height: 14px; background: var(--text); }
+    .pin {
+      position: absolute; bottom: 4px; transform: translateX(-50%); text-decoration: none;
+      font-size: 1.7rem; line-height: 1; transition: transform .15s;
+    }
+    .pin:hover, .pin:focus-visible { transform: translateX(-50%) translateY(-6px) scale(1.2); }
+    .pin.up { bottom: 40px; }
+    .cal-note { margin: 40px 0 0; font-size: .9rem; color: var(--muted); }
+
+    .montage {
+      display: inline-flex; align-items: center; gap: 8px; margin: 22px 0 0; padding: 8px 18px;
+      font: 700 1.05rem var(--print); color: #fff; background: var(--pen); border: 0; border-radius: 999px;
+      cursor: pointer; box-shadow: 3px 3px 0 var(--border);
+    }
+    .montage:hover { filter: brightness(1.08); }
+
+    /* ---- the episodes ---- */
+    .log { list-style: none; margin: 30px 0 0; padding: 0; }
+    .entry { scroll-margin-top: 24px; }
+    .card {
+      display: grid; grid-template-columns: 250px 1fr; gap: 24px; align-items: start;
+      background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 22px 20px 18px;
+      box-shadow: 4px 5px 0 var(--border); transition: box-shadow .25s, transform .25s;
+    }
+    .entry.on-air .card { box-shadow: 0 0 0 4px var(--pen), 4px 5px 0 var(--border); transform: scale(1.015); }
+
+    /* each picture is a polaroid taped into the notebook, with a caption written on it */
+    .shot {
+      position: relative; margin: 0; padding: 10px 10px 0; background: #fffdf6; border-radius: 3px;
+      box-shadow: 0 2px 3px rgba(0, 0, 0, .18), 0 10px 22px rgba(0, 0, 0, .16);
+      transform: rotate(-2.5deg); transition: transform .25s, box-shadow .25s; cursor: zoom-in;
+    }
+    .entry:nth-child(4n+3) .shot { transform: rotate(2deg); }
+    .shot:hover, .shot:focus-visible {
+      transform: rotate(0deg) translateY(-4px) scale(1.03);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, .2), 0 18px 32px rgba(0, 0, 0, .2); outline: none;
+    }
+    .shot img, .shot .screen {
+      display: block; width: 100%; height: auto; border-radius: 2px;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+    }
+    .shot .screen {
+      aspect-ratio: 472 / 480; display: grid; place-items: center; font-size: 5.5rem;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .55), transparent 45%),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, .12) 0 10px, transparent 10px 20px),
+        radial-gradient(circle at 50% 45%, var(--tint, #ffd8a8), color-mix(in srgb, var(--tint, #ffd8a8) 45%, #000));
+      text-shadow: 0 6px 14px rgba(0, 0, 0, .3);
+    }
+    .shot figcaption {
+      font-family: var(--hand); font-size: 1.45rem; line-height: 1; color: #3a3550;
+      text-align: center; padding: 10px 4px 12px;
+    }
+    /* tape holding the picture on */
+    .shot::before, .shot::after {
+      content: ""; position: absolute; top: -11px; width: 64px; height: 22px; z-index: 1;
+      background: rgba(255, 242, 122, .75); box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+    }
+    .shot::before { left: -14px; transform: rotate(-38deg); }
+    .shot::after { right: -14px; transform: rotate(38deg); }
+
+    /* the big view when you tap a picture */
+    .zoom {
+      border: 0; padding: 0; background: transparent; max-width: min(92vw, 560px); width: 100%; overflow: visible;
+    }
+    .zoom::backdrop { background: rgba(10, 10, 20, .72); }
+    .zoom .shot { transform: none; cursor: zoom-out; padding: 14px 14px 0; }
+    .zoom .shot:hover { transform: none; }
+    .zoom .shot figcaption { font-size: 2rem; padding: 14px 4px 16px; }
+
+    .ep { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0; }
+    .ep-num {
+      font: 700 .8rem var(--print); letter-spacing: .12em; text-transform: uppercase;
+      color: #fff; background: var(--pen); border-radius: 6px; padding: 1px 8px;
+    }
+    .when { font-family: var(--hand); font-size: 1.5rem; color: var(--pen); line-height: 1.2; }
+    .entry h3 { margin: 2px 0 6px; font-size: 2.3rem; }
+    .entry p { margin: 0 0 8px; }
+    .facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
+    .facts li { font-size: .85rem; border: 1.5px solid var(--border); border-radius: 999px; padding: 0 10px; color: var(--muted); }
+    .bts { margin: 0 0 10px; }
+    .bts summary { cursor: pointer; color: var(--text); font-weight: 700; }
+    .bts ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); font-size: .95rem; }
+    .bts li { margin: 2px 0; }
+    .play { color: var(--pen); font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+    .play:hover { text-decoration: underline; }
+    .soon { background: var(--hl); padding: 0 8px; border-radius: 6px; }
+
+    /* the gap between two episodes */
+    .gap {
+      display: flex; align-items: center; gap: 10px; margin: 0 0 0 86px; padding: 10px 0;
+      font-family: var(--hand); font-size: 1.35rem; color: var(--muted);
+    }
+    .gap::before { content: ""; width: 3px; height: 34px; background: repeating-linear-gradient(var(--pen) 0 6px, transparent 6px 11px); }
+
+    @media (max-width: 600px) {
+      .card { grid-template-columns: 1fr; }
+      .card > .shot { max-width: 280px; margin: 4px auto 6px; }
+      .gap { margin-left: 24px; }
+      .entry h3 { font-size: 2rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card, .pin, .shot { transition: none; }
+      .entry.on-air .card { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/" aria-label="Anna Wang, homepage">AW</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Switch between notebook and chalkboard theme" title="Switch theme">
+      <span class="icon-sun" aria-hidden="true">☀️</span><span class="icon-moon" aria-hidden="true">🌙</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="section game-page" aria-labelledby="devlog-title">
+      <a class="back" href="/">← Back to my homepage</a>
+      <h1 id="devlog-title"><span class="highlight">Dev Log</span> 📓</h1>
+      <p class="play-note">Every time I work on a game, my code saves a little note with the date. I went back through all those notes to find out when I made each game. So here's my whole story so far, one episode per game!</p>
+
+      <ul class="stats" aria-label="The dev log in numbers">
+        <li><b>7</b>games &amp; apps</li>
+        <li><b>100+</b>updates</li>
+        <li><b>3</b>months of making</li>
+        <li><b>6</b>games in October!</li>
+      </ul>
+
+      <div class="cal" aria-labelledby="cal-title">
+        <h2 id="cal-title">My making calendar</h2>
+        <div class="strip" id="strip"></div>
+        <p class="cal-note">Tap an emoji to jump to its episode. See how October went a little wild? 😄</p>
+      </div>
+
+      <button class="montage" id="montage" type="button">▶ Play the montage</button>
+
+      <ol class="log" id="log">
+        <li class="entry" id="ep-1" data-date="2026-08-12" data-emoji="🐾">
+          <article class="card" aria-labelledby="t-1">
+            <figure class="shot" tabindex="0"><div class="screen" style="--tint:#ffd6a5" role="img" aria-label="Fluffipets">🐾</div><figcaption>my desktop buddy</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 1</span><span class="when">August 12, 2026</span></p>
+              <h3 id="t-1">Fluffipets</h3>
+              <p>A Mac app that puts a small animal on your desktop. He walks along your screen edges, explores your windows, and keeps you company while you work.</p>
+              <ul class="facts"><li>Mac app</li><li>built over about a month</li><li>33 updates</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>My biggest project so far. I worked on it for about a month.</li>
+                  <li>It made it all the way onto the Mac App Store!</li>
+                </ul>
+              </details>
+              <a class="play" href="/apps/fluffipets/">See it →</a>
+            </div>
+          </article>
+        </li>
+
+        <li class="gap" aria-hidden="true">60 days later…</li>
+
+        <li class="entry" id="ep-2" data-date="2026-10-11" data-emoji="🪙">
+          <article class="card" aria-labelledby="t-2">
+            <figure class="shot" tabindex="0"><img src="/games/coin-pusher/thumbnail.jpg" alt="The Coin Pusher machine, full of gold coins" width="472" height="480" loading="lazy"><figcaption>insert coin!</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 2</span><span class="when">October 11, 2026</span></p>
+              <h3 id="t-2">Coin Pusher</h3>
+              <p>An arcade coin pusher. Drop coins, push them off the edge, and hit the LUCKY slot for a jackpot.</p>
+              <ul class="facts"><li>3D arcade</li><li>arcade built in 5 days</li><li>29 updates</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>Plot twist: on October 10 this was a pet gacha game. The next day I switched it to a coin pusher.</li>
+                  <li>I gave the coins clinky metal sounds and stacking physics, then made the machine harder to win.</li>
+                </ul>
+              </details>
+              <a class="play" href="/games/coin-pusher/">Play it →</a>
+            </div>
+          </article>
+        </li>
+
+        <li class="gap" aria-hidden="true">the very next day…</li>
+
+        <li class="entry" id="ep-3" data-date="2026-10-12" data-emoji="🧸">
+          <article class="card" aria-labelledby="t-3">
+            <figure class="shot" tabindex="0"><img src="/games/claw-machine/thumbnail.jpg" alt="The Claw Machine, full of cute plush animals" width="472" height="480" loading="lazy"><figcaption>so many plushies</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 3</span><span class="when">October 12, 2026</span></p>
+              <h3 id="t-3">Claw Machine</h3>
+              <p>A 3D claw machine full of plush toys. Steer the claw, grab a prize, and fill up your prize shelf. The claw is weak, just like a real one!</p>
+              <ul class="facts"><li>3D arcade</li><li>shares the arcade with Coin Pusher</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>It started as an extra machine next to the Coin Pusher, spending the same credits.</li>
+                  <li>That same day I rebuilt the whole arcade in real 3D with physics, and added music, a theme shop, and a view you can turn around.</li>
+                  <li>Later the claw got real hinged prongs, so toys can actually slip out of its grip.</li>
+                </ul>
+              </details>
+              <a class="play" href="/games/claw-machine/">Play it →</a>
+            </div>
+          </article>
+        </li>
+
+        <li class="gap" aria-hidden="true">4 days later…</li>
+
+        <li class="entry" id="ep-4" data-date="2026-10-16" data-emoji="⛳">
+          <article class="card" aria-labelledby="t-4">
+            <figure class="shot" tabindex="0"><img src="/games/wacky-rage-golf/thumbnail.jpg" alt="A mini golf hole in Wacky Rage Golf" width="472" height="480" loading="lazy"><figcaption>good luck on this hole</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 4</span><span class="when">October 16, 2026</span></p>
+              <h3 id="t-4">Wacky Rage Golf</h3>
+              <p>3D mini golf where every hole is out to get you: shy cups, sneaky moles, a thieving eagle and a UFO.</p>
+              <ul class="facts"><li>3D mini golf</li><li>built in 3 days</li><li>33 updates 🔥 my fastest!</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>It started as plain “Wacky Golf” with nine silly holes. On day two I made it 3D and turned it into a rage game.</li>
+                  <li>The crow got upgraded into a bald eagle, and the course started crumbling away under your ball.</li>
+                  <li>The chiptune music gets more intense as your rage meter fills up.</li>
+                  <li>I took out the mercy rule. It's a rage game!</li>
+                </ul>
+              </details>
+              <a class="play" href="/games/wacky-rage-golf/">Play it →</a>
+            </div>
+          </article>
+        </li>
+
+        <li class="gap" aria-hidden="true">2 days later…</li>
+
+        <li class="entry" id="ep-5" data-date="2026-10-18" data-emoji="🤠">
+          <article class="card" aria-labelledby="t-5">
+            <figure class="shot" tabindex="0"><div class="screen" style="--tint:#e8a86b" role="img" aria-label="Bull Rider">🤠</div><figcaption>yeehaw! (coming soon)</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 5</span><span class="when">October 18, 2026</span></p>
+              <h3 id="t-5">Bull Rider</h3>
+              <p>A 3D rodeo game: hang on to a bucking bull for 8 whole seconds, with its own music.</p>
+              <ul class="facts"><li>3D rodeo</li><li>still in the works</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>I'm still working on it, so it isn't on my games page yet. Stay tuned!</li>
+                </ul>
+              </details>
+              <span class="soon">Coming soon</span>
+            </div>
+          </article>
+        </li>
+
+        <li class="gap" aria-hidden="true">6 days later…</li>
+
+        <li class="entry" id="ep-6" data-date="2026-10-24" data-emoji="🫧">
+          <article class="card" aria-labelledby="t-6">
+            <figure class="shot" tabindex="0"><img src="/games/drift/thumbnail.jpg" alt="Four calm places from Drift: glossy orbs, glowing jellyfish, a fireplace and floating lanterns" width="472" height="480" loading="lazy"><figcaption>breathe in… breathe out</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 6</span><span class="when">October 24, 2026</span></p>
+              <h3 id="t-6">Drift</h3>
+              <p>A calm, relaxing game for when you need a break. Pop glossy orbs, watch glowing jellyfish, rake a sand garden, light lanterns, and poke a crackling fire, with soft sounds and music.</p>
+              <ul class="facts"><li>relaxing</li><li>built in 3 days</li><li>12 updates</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>It started as one toy: orbs you can pop. Then I kept adding new places to visit.</li>
+                  <li>In three days I added a zen sand garden, a lantern lake, a bamboo grove, a rainy window and a cozy fireplace.</li>
+                  <li>The koi pond got replaced by “the Deep,” with glowing jellyfish.</li>
+                </ul>
+              </details>
+              <a class="play" href="/games/drift/">Play it →</a>
+            </div>
+          </article>
+        </li>
+
+        <li class="gap" aria-hidden="true">7 days later…</li>
+
+        <li class="entry" id="ep-7" data-date="2026-10-31" data-emoji="🎃">
+          <article class="card" aria-labelledby="t-7">
+            <figure class="shot" tabindex="0"><img src="/games/trick-or-treat/thumbnail.jpg" alt="A kid in a pumpkin costume on a spooky street at night, with two ghosts floating behind" width="472" height="480" loading="lazy"><figcaption>trick or treat!</figcaption></figure>
+            <div>
+              <p class="ep"><span class="ep-num">Episode 7</span><span class="when">October 31, 2026</span></p>
+              <h3 id="t-7">Trick or Treat Street</h3>
+              <p>A 3D Halloween game. Pick a costume, knock on doors for treats (or tricks!), dodge the ghosts, and get home by midnight with the biggest candy haul.</p>
+              <ul class="facts"><li>3D</li><li>Halloween special 👻</li></ul>
+              <details class="bts"><summary>Behind the scenes</summary>
+                <ul>
+                  <li>It went up on my site on Halloween itself.</li>
+                </ul>
+              </details>
+              <a class="play" href="/games/trick-or-treat/">Play it →</a>
+            </div>
+          </article>
+        </li>
+      </ol>
+      <p class="play-note" style="margin-top:24px">To be continued… 🎬</p>
+      <dialog class="zoom" id="zoom" aria-label="Bigger picture"></dialog>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>made with ♥ by <a href="/">Anna Wang</a> · 2026</span>
+  </footer>
+
+  <script src="/script.js" defer></script>
+  <script>
+    // The calendar strip: one emoji per episode, placed on its date from August to November.
+    // October gets most of the room, since that's when nearly everything happened.
+    (() => {
+      const strip = document.getElementById("strip");
+      const months = [["Aug", 31, 1.2], ["Sep", 30, .8], ["Oct", 31, 4], ["Nov", 30, 1]];   // name, days, share of the width
+      const total = months.reduce((s, m) => s + m[2], 0);
+      const at = (mo, day) => {   // mo: 0 for August .. 3 for November
+        let x = 0;
+        for (let i = 0; i < mo; i++) x += months[i][2];
+        return ((x + months[mo][2] * (day - 1) / months[mo][1]) / total) * 100;
+      };
+      months.forEach(([m, days], i) => {
+        const tick = document.createElement("span");
+        tick.className = "tick"; tick.style.left = at(i, 1) + "%";
+        const label = document.createElement("span");
+        label.className = "month"; label.style.left = at(i, days / 2 + 1) + "%"; label.textContent = m;
+        strip.append(tick, label);
+      });
+      let lastLeft = -99, up = false;
+      document.querySelectorAll(".entry").forEach((e) => {
+        const [y, mo, d] = e.dataset.date.split("-").map(Number);
+        const pos = at(mo - 8, d);
+        // emojis close together take turns sitting high and low, so they don't overlap
+        up = pos - lastLeft < 6 ? !up : false;
+        lastLeft = pos;
+        const a = document.createElement("a");
+        a.className = "pin" + (up ? " up" : "");
+        a.href = "#" + e.id;
+        a.style.left = pos + "%";
+        a.textContent = e.dataset.emoji;
+        const day = new Date(Date.UTC(y, mo - 1, d)).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+        a.title = e.querySelector("h3").textContent + " · " + day;
+        a.setAttribute("aria-label", a.title);
+        strip.append(a);
+      });
+    })();
+
+    // Tap a picture to see it big; tap again (or press Escape) to put it back.
+    (() => {
+      const zoom = document.getElementById("zoom");
+      if (!zoom.showModal) return;
+      const open = (shot) => {
+        zoom.replaceChildren(shot.cloneNode(true));
+        zoom.firstChild.removeAttribute("tabindex");
+        zoom.showModal();
+      };
+      document.querySelectorAll(".card > .shot").forEach((shot) => {
+        shot.addEventListener("click", () => open(shot));
+        shot.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(shot); } });
+      });
+      zoom.addEventListener("click", () => zoom.close());
+    })();
+
+    // The montage: visit each episode in turn, like flicking through a vlog.
+    (() => {
+      const btn = document.getElementById("montage");
+      const eps = [...document.querySelectorAll(".entry")];
+      const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let timer = null, i = 0;
+      const stop = () => {
+        clearTimeout(timer); timer = null;
+        eps.forEach((e) => e.classList.remove("on-air"));
+        btn.textContent = "▶ Play the montage";
+      };
+      const show = () => {
+        eps.forEach((e) => e.classList.remove("on-air"));
+        if (i >= eps.length) { stop(); return; }
+        eps[i].classList.add("on-air");
+        eps[i].scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
+        i++;
+        timer = setTimeout(show, 2600);
+      };
+      btn.addEventListener("click", () => {
+        if (timer) { stop(); return; }
+        i = 0;
+        btn.textContent = "■ Stop";
+        show();
+      });
+    })();
+  </script>
+</body>
+</html>
