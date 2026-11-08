@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, indexifembedded">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wacky Rage Golf</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4363,9 +4364,7 @@ function build3D() {
       const s = thickEmoji(m[8]); s.scale.setScalar(size); level3D.add(s);
       return { m, s, sh: blob(level3D), size };
     }
-    const box = woodBox(moverRect(m, 0), 32);
-    const s = thickEmoji('🧦'); s.scale.setScalar(26); level3D.add(s);
-    return { m, box, s };
+    return { m, box: woodBox(moverRect(m, 0), 32) };
   });
 
   // a flag for every cup, and the props for this hole's trolls
@@ -4831,8 +4830,8 @@ function draw() {
       setBlob(o.sh, cx, cy, o.size * .45);
       continue;
     }
-    if (o.box) { place(o.box, cx, cy, 16); place(o.s, cx, cy, 46); }
-    else { place(o.s, cx, cy, o.size * .46 + Math.abs(Math.sin(time * 9 + o.m[7])) * 3); setBlob(o.sh, cx, cy, o.size * .4); }
+    if (o.box) { place(o.box, cx, cy, 16); continue; }
+    place(o.s, cx, cy, o.size * .46 + Math.abs(Math.sin(time * 9 + o.m[7])) * 3); setBlob(o.sh, cx, cy, o.size * .4);
     faceCamera(o.s);
   }
   cups.forEach((c, i) => {

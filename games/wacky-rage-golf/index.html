@@ -35,17 +35,56 @@
   </script>
 
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "VideoGame",
-    "name": "Wacky Rage Golf",
-    "url": "https://annawang.net/games/wacky-rage-golf/",
-    "image": "https://annawang.net/games/wacky-rage-golf/thumbnail.jpg",
-    "description": "A free 3D mini golf game where every hole is out to get you.",
-    "gamePlatform": "Web browser",
-    "applicationCategory": "Game",
-    "author": { "@type": "Person", "@id": "https://annawang.net/#anna", "name": "Anna Wang", "url": "https://annawang.net/" }
-  }
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "VideoGame",
+      "name": "Wacky Rage Golf",
+      "url": "https://annawang.net/games/wacky-rage-golf/",
+      "image": "https://annawang.net/games/wacky-rage-golf/thumbnail.jpg",
+      "description": "A free 3D mini golf game where every hole is out to get you.",
+      "gamePlatform": "Web browser",
+      "applicationCategory": "Game",
+      "author": {
+        "@type": "Person",
+        "@id": "https://annawang.net/#anna",
+        "name": "Anna Wang",
+        "url": "https://annawang.net/"
+      },
+      "genre": [
+        "Sports",
+        "Mini golf"
+      ],
+      "playMode": "SinglePlayer",
+      "isAccessibleForFree": true,
+      "inLanguage": "en"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Anna Wang",
+          "item": "https://annawang.net/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Games",
+          "item": "https://annawang.net/games/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Wacky Rage Golf",
+          "item": "https://annawang.net/games/wacky-rage-golf/"
+        }
+      ]
+    }
+  ]
+}
   </script>
 </head>
 <body>
@@ -58,11 +97,44 @@
 
   <main>
     <section class="section game-page" aria-labelledby="game-title">
-      <a class="back" href="/#games">← All my games</a>
+      <a class="back" href="/games/">← All my games</a>
       <h1 id="game-title"><span class="highlight">Wacky Rage Golf</span> ⛳</h1>
       <p class="play-note">Drag on the course to pull back and aim, then let go to swing. Every hole has a nasty surprise waiting for you. Good luck! 😡</p>
       <div class="game-frame">
         <iframe src="/golf/" title="Wacky Rage Golf, a mini golf game by Anna Wang" allow="autoplay"></iframe>
+      </div>
+    </section>
+    <section class="section" aria-labelledby="more-title">
+      <h2 id="more-title">More games by me</h2>
+      <div class="games">
+        <a class="game-card" href="/games/coin-pusher/">
+          <img src="/games/coin-pusher/thumbnail.jpg" alt="The Coin Pusher machine, full of gold coins" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Coin Pusher 🪙</h3>
+            <p>Drop coins, push them off the edge, and hit the LUCKY slot.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/claw-machine/">
+          <img src="/games/claw-machine/thumbnail.jpg" alt="The Claw Machine, full of cute plush animals" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Claw Machine 🧸</h3>
+            <p>Steer the claw and grab a plush prize for your shelf.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/drift/">
+          <img src="/games/drift/thumbnail.jpg" alt="Four calm places from Drift: glossy orbs, glowing jellyfish, a fireplace and floating lanterns" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Drift 🫧</h3>
+            <p>A calm, relaxing game: orbs, jellyfish, lanterns, a cozy fire and more.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/trick-or-treat/">
+          <img src="/games/trick-or-treat/thumbnail.jpg" alt="A kid in a pumpkin costume on a spooky street at night, with two ghosts floating behind" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Trick or Treat Street 🎃</h3>
+            <p>Pick a costume, knock on doors for candy, and dodge the ghosts before midnight.</p>
+          </div>
+        </a>
       </div>
     </section>
   </main>

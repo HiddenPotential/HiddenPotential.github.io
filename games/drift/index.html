@@ -35,17 +35,56 @@
   </script>
 
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "VideoGame",
-    "name": "Drift",
-    "url": "https://annawang.net/games/drift/",
-    "image": "https://annawang.net/games/drift/thumbnail.jpg",
-    "description": "A free calm, relaxing game with glossy orbs, glowing jellyfish, a sand garden, lanterns, a wooden fish, a bamboo grove, a rainy window and a cozy fireplace.",
-    "gamePlatform": "Web browser",
-    "applicationCategory": "Game",
-    "author": { "@type": "Person", "@id": "https://annawang.net/#anna", "name": "Anna Wang", "url": "https://annawang.net/" }
-  }
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "VideoGame",
+      "name": "Drift",
+      "url": "https://annawang.net/games/drift/",
+      "image": "https://annawang.net/games/drift/thumbnail.jpg",
+      "description": "A free calm, relaxing game with glossy orbs, glowing jellyfish, a sand garden, lanterns, a wooden fish, a bamboo grove, a rainy window and a cozy fireplace.",
+      "gamePlatform": "Web browser",
+      "applicationCategory": "Game",
+      "author": {
+        "@type": "Person",
+        "@id": "https://annawang.net/#anna",
+        "name": "Anna Wang",
+        "url": "https://annawang.net/"
+      },
+      "genre": [
+        "Casual",
+        "Relaxing"
+      ],
+      "playMode": "SinglePlayer",
+      "isAccessibleForFree": true,
+      "inLanguage": "en"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Anna Wang",
+          "item": "https://annawang.net/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Games",
+          "item": "https://annawang.net/games/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Drift",
+          "item": "https://annawang.net/games/drift/"
+        }
+      ]
+    }
+  ]
+}
   </script>
 </head>
 <body>
@@ -58,11 +97,44 @@
 
   <main>
     <section class="section game-page" aria-labelledby="game-title">
-      <a class="back" href="/#games">← All my games</a>
+      <a class="back" href="/games/">← All my games</a>
       <h1 id="game-title"><span class="highlight">Drift</span> 🫧</h1>
       <p class="play-note">A calm, relaxing game with lots of peaceful places to visit. Pick one from the menu in the top corner: pop and fling glossy orbs, watch glowing jellyfish in the deep sea, rake a sand garden, light lanterns, tap a wooden fish, listen to a bamboo grove or rain on a window, or poke a cozy fire. Turn your sound on! 🎧 It's even better <a href="/drift/">full screen</a>.</p>
       <div class="game-frame">
         <iframe src="/drift/" title="Drift, a calm game by Anna Wang" allow="autoplay; fullscreen" style="height: min(82vh, 860px)"></iframe>
+      </div>
+    </section>
+    <section class="section" aria-labelledby="more-title">
+      <h2 id="more-title">More games by me</h2>
+      <div class="games">
+        <a class="game-card" href="/games/coin-pusher/">
+          <img src="/games/coin-pusher/thumbnail.jpg" alt="The Coin Pusher machine, full of gold coins" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Coin Pusher 🪙</h3>
+            <p>Drop coins, push them off the edge, and hit the LUCKY slot.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/claw-machine/">
+          <img src="/games/claw-machine/thumbnail.jpg" alt="The Claw Machine, full of cute plush animals" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Claw Machine 🧸</h3>
+            <p>Steer the claw and grab a plush prize for your shelf.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/wacky-rage-golf/">
+          <img src="/games/wacky-rage-golf/thumbnail.jpg" alt="A mini golf hole in Wacky Rage Golf, with a windmill and a mole in the cup" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Wacky Rage Golf ⛳</h3>
+            <p>3D mini golf where every hole is out to get you.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/trick-or-treat/">
+          <img src="/games/trick-or-treat/thumbnail.jpg" alt="A kid in a pumpkin costume on a spooky street at night, with two ghosts floating behind" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Trick or Treat Street 🎃</h3>
+            <p>Pick a costume, knock on doors for candy, and dodge the ghosts before midnight.</p>
+          </div>
+        </a>
       </div>
     </section>
   </main>

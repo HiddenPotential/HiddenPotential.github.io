@@ -23,6 +23,11 @@ Find the section you want (About Me, Things I Do, My Favorite Things, Stuff I Ma
 - `golf/`: Wacky Rage Golf (`index.html`), copied from the `coolgame` repo. To update it, copy that file over again. Its page sizes the frame to fit the game.
 - `drift/`: Drift, the calm game (`index.html`, `style.css` and its `.js` files), copied from the `Last-Nighthawk` repo. To update it, copy those files over again. The lantern lake's shared quotes need that repo's `server.py`, so here quotes stay on each visitor's device.
 - `trick-or-treat/`: Trick or Treat Street, the Halloween game (`index.html`), copied from the `hallowseve` repo. To update it, copy that file over again.
+- `games/`: `games/index.html` is the page listing every game. When you add a game, add a card there, on the homepage, in each game page's "More games by me" section, and in `sitemap.xml`.
+
+> 🔎 **Search engines:** the game folders (`arcade/`, `golf/`, `drift/`, `trick-or-treat/`, `rodeo/`) start with
+> `<meta name="robots" content="noindex, indexifembedded">`, so Google shows the game pages under `games/` instead of the bare games.
+> Copying a game over again replaces that line, so add it back right after `<meta charset>`.
 - `apps/fluffipets/`: Fluffipets app page, privacy policy, and support
 - `google444b4c14092b6f73.html`: Google Search Console verification (don't delete!)
 

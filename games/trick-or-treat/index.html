@@ -35,17 +35,56 @@
   </script>
 
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "VideoGame",
-    "name": "Trick or Treat Street",
-    "url": "https://annawang.net/games/trick-or-treat/",
-    "image": "https://annawang.net/games/trick-or-treat/thumbnail.jpg",
-    "description": "A free 3D Halloween game: pick a costume, knock on doors for treats or tricks, dodge ghosts, and get home by midnight with the biggest candy haul.",
-    "gamePlatform": "Web browser",
-    "applicationCategory": "Game",
-    "author": { "@type": "Person", "@id": "https://annawang.net/#anna", "name": "Anna Wang", "url": "https://annawang.net/" }
-  }
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "VideoGame",
+      "name": "Trick or Treat Street",
+      "url": "https://annawang.net/games/trick-or-treat/",
+      "image": "https://annawang.net/games/trick-or-treat/thumbnail.jpg",
+      "description": "A free 3D Halloween game: pick a costume, knock on doors for treats or tricks, dodge ghosts, and get home by midnight with the biggest candy haul.",
+      "gamePlatform": "Web browser",
+      "applicationCategory": "Game",
+      "author": {
+        "@type": "Person",
+        "@id": "https://annawang.net/#anna",
+        "name": "Anna Wang",
+        "url": "https://annawang.net/"
+      },
+      "genre": [
+        "Adventure",
+        "Halloween"
+      ],
+      "playMode": "SinglePlayer",
+      "isAccessibleForFree": true,
+      "inLanguage": "en"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Anna Wang",
+          "item": "https://annawang.net/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Games",
+          "item": "https://annawang.net/games/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Trick or Treat Street",
+          "item": "https://annawang.net/games/trick-or-treat/"
+        }
+      ]
+    }
+  ]
+}
   </script>
 </head>
 <body>
@@ -58,11 +97,44 @@
 
   <main>
     <section class="section game-page" aria-labelledby="game-title">
-      <a class="back" href="/#games">← All my games</a>
+      <a class="back" href="/games/">← All my games</a>
       <h1 id="game-title"><span class="highlight">Trick or Treat Street</span> 🎃</h1>
       <p class="play-note">It's Halloween night! Pick a costume (each one has its own power), then walk up to houses and knock for candy. Most doors give you a treat, but some play a trick on you, and ghosts are floating down the street. Get home by midnight with the biggest haul you can! Walk with the arrow keys or WASD, drag to look around, and turn your sound on for spooky music. 🎧 Click the game first so it hears your keys. It's even better <a href="/trick-or-treat/">full screen</a>.</p>
       <div class="game-frame">
         <iframe src="/trick-or-treat/" title="Trick or Treat Street, a Halloween game by Anna Wang" allow="autoplay; fullscreen" style="height: min(82vh, 860px)"></iframe>
+      </div>
+    </section>
+    <section class="section" aria-labelledby="more-title">
+      <h2 id="more-title">More games by me</h2>
+      <div class="games">
+        <a class="game-card" href="/games/coin-pusher/">
+          <img src="/games/coin-pusher/thumbnail.jpg" alt="The Coin Pusher machine, full of gold coins" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Coin Pusher 🪙</h3>
+            <p>Drop coins, push them off the edge, and hit the LUCKY slot.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/claw-machine/">
+          <img src="/games/claw-machine/thumbnail.jpg" alt="The Claw Machine, full of cute plush animals" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Claw Machine 🧸</h3>
+            <p>Steer the claw and grab a plush prize for your shelf.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/wacky-rage-golf/">
+          <img src="/games/wacky-rage-golf/thumbnail.jpg" alt="A mini golf hole in Wacky Rage Golf, with a windmill and a mole in the cup" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Wacky Rage Golf ⛳</h3>
+            <p>3D mini golf where every hole is out to get you.</p>
+          </div>
+        </a>
+        <a class="game-card" href="/games/drift/">
+          <img src="/games/drift/thumbnail.jpg" alt="Four calm places from Drift: glossy orbs, glowing jellyfish, a fireplace and floating lanterns" width="472" height="480" loading="lazy">
+          <div class="text">
+            <h3>Drift 🫧</h3>
+            <p>A calm, relaxing game: orbs, jellyfish, lanterns, a cozy fire and more.</p>
+          </div>
+        </a>
       </div>
     </section>
   </main>
